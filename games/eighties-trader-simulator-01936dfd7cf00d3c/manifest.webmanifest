@@ -1,0 +1,1 @@
+{"name": "南北货栈", "short_name": "南北货栈", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#f6f0df", "theme_color": "#254f55", "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}
