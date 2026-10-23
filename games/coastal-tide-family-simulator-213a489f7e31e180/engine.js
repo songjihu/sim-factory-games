@@ -1,5 +1,5 @@
 (function(root){'use strict';
-const VERSION='1.0.0',GOODS=[{name:'花蛤',price:4,food:2},{name:'海螺',price:7,food:2},{name:'青蟹',price:12,food:3}];
+const VERSION='1.0.1',GOODS=[{name:'花蛤',price:4,food:2},{name:'海螺',price:7,food:2},{name:'青蟹',price:12,food:3}];
 const PEOPLE=[['阿岚','料理家务与晾晒，盼着攒够过冬钱。'],['小汐','每天在窗边画下潮位。'],['陈伯','老渔人，教你辨潮与留种。'],['叶嫂','收鲜摊主，按鲜度结价。'],['周船匠','修冰箱、补船板。'],['林巡护','照看禁采区与幼蟹。']];
 const EVENTS=[
 ['退潮后的幼蛤','沙面密密一片幼蛤。',s=>s.eco<8,[['留种：生态+2',{eco:2}],['清理垃圾：体力-1，口碑+2',{energy:-1,rep:2}]]],
