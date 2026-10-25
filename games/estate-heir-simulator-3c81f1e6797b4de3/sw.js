@@ -1,0 +1,4 @@
+const CACHE='G105-estate-v1.0.0-'+new URL(self.registration.scope).pathname,FILES=['./','./index.html','./style.css','./app.mjs','./engine.mjs','./manifest.webmanifest','./icon.svg','./art/hall.webp','./art/hall-small.webp','./art/garden.webp','./art/garden-small.webp','./art/study.webp','./art/study-small.webp'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('G105-estate-')&&k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()])));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||!e.request.url.startsWith(self.registration.scope))return;e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request)));});
