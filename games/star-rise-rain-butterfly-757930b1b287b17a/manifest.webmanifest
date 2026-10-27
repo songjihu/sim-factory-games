@@ -1,0 +1,1 @@
+{"name": "蝶影成名 · 明星成长模拟器", "short_name": "蝶影成名", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#102830", "theme_color": "#112e35", "icons": [{"src": "art/icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "art/icon-512.png", "sizes": "512x512", "type": "image/png"}]}
