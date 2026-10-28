@@ -1,4 +1,4 @@
-const VERSION='1.0.1',KEY='G110-medgrowth-save-v1';
+const VERSION='1.0.2',KEY='G110-medgrowth-save-v1';
 function fresh(){return {schema:1,game:'G110',revision:0,updatedAt:0,day:1,energy:78,trust:40,team:30,show:20,safety:0,skills:[25,25,25],prep:2,clues:[],seen:[],logs:[],results:[],mode:'desk',ended:false,title:'',last:'',route:''}}
 function clamp(n){return Math.max(0,Math.min(100,n))}
 function node(s){return NODES[s.day-1]}
