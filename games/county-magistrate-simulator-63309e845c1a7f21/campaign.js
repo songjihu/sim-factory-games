@@ -8,7 +8,7 @@ function requireAction(s){if(s.ended)throw Error('任期已结束');if(s.ap<1)th
 function pay(s,n){if(s.silver<n)throw Error('官银不足，需要'+n+'两');s.silver-=n}
 function hasStaff(s,id){return s.staff.includes(id)}
 function completed(s,id){let p=s.projects[id];return p&&p.status==='complete'?p.level:0}
-function migrate(s){if(!s||typeof s!=='object')throw Error('存档结构损坏');if(s.campaign===2)return s;
+function migrate(s){if(!s||typeof s!=='object')throw Error('存档结构损坏');if(s.campaign===2){if(s.schema===2&&s.version==='2.0.0')s.version=VERSION;return s;}
  if(!['1.0.0','1.0.1','1.1.0'].includes(s.version)||s.schema!==1||!Number.isInteger(s.week)||s.week<1||s.week>13)throw Error('旧存档版本不兼容');
  const oldEnded=s.ended,oldEnding=s.ending;Object.assign(s,campaignFields(),{version:VERSION,schema:2,ap:Math.min(4,(s.ap||0)+1),sideCase:null});
  if(oldEnded&&s.week===13){s.ended=false;s.ending='';s.week=13;s.ap=4;s.reviews=[{week:12,label:oldEnding||'首任考课'}];s.silver=Math.max(s.silver,140);s.grain=Math.max(s.grain,180);s.people=Math.max(s.people,40);s.repute=Math.max(s.repute,40);note(s,'旧版首任考课已保留。任期继续：第13周进入盐引夜航，不必重新开局。')}
