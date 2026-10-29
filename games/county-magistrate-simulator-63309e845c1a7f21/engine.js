@@ -1,7 +1,7 @@
 "use strict";
-const VERSION='1.1.0',KEY='G055-county-v1';
+const VERSION='2.0.0',KEY='G055-county-v1';
 const PEOPLE=[['沈砚','新任知县','你。接印时只有一县账册，任期十二周。'],['陈衡','县丞','催你先签交接册。他怕担责，也熟悉衙门暗账。'],['杜衡','粮吏','声称仓中亏空全是霉耗，账面却一石不差。'],['许照','验粮官','认得陈米与新米，也认得重盖过的封蜡。'],['罗七','老船户','女儿失踪后闭口不言，夜间仍在芦苇荡撑船。'],['柳廷','粮商','愿借粮救急，条件是让他包下下一季采买。'],['温谨','巡按','只认互相印证的实物与证言，不认漂亮奏章。']];
-const fresh=()=>({schema:1,version:VERSION,week:1,ap:3,silver:260,grain:320,people:52,repute:45,levee:20,clean:80,debt:0,clues:[],done:[],eventWeek:0,revision:0,ended:false,ending:'',log:['你接过青浦县官印。交接册写着仓粮五百石，仓门后却只剩三百二十石。']});
+let fresh=()=>({schema:1,version:VERSION,week:1,ap:3,silver:260,grain:320,people:52,repute:45,levee:20,clean:80,debt:0,clues:[],done:[],eventWeek:0,revision:0,ended:false,ending:'',log:['你接过青浦县官印。交接册写着仓粮五百石，仓门后却只剩三百二十石。']});
 const cap=(x,a=0,b=100)=>Math.max(a,Math.min(b,x));
 function effect(s,e){for(const[k,v]of Object.entries(e))if(['silver','grain','people','repute','levee','clean','debt'].includes(k))s[k]=cap(s[k]+v,0,['silver','grain'].includes(k)?999:k==='debt'?500:100)}
 function note(s,t){s.log.unshift(t);s.log=s.log.slice(0,50)}
