@@ -1,4 +1,4 @@
-const VERSION='2.0.0',SAVE_KEY='G110-hospital-save-v3';
+const VERSION='2.0.1',SAVE_KEY='G110-hospital-save-v3';
 const TOOLS={folder:{name:'资料夹',icon:'folder'},check:{name:'核对章',icon:'check'},teacher:{name:'交给老师',icon:'teacher'},water:{name:'温水',icon:'water'},bell:{name:'呼叫铃',icon:'bell'},phone:{name:'联络卡',icon:'phone'},wheel:{name:'轮椅',icon:'wheel'},ticket:{name:'预约单',icon:'ticket'},model:{name:'教学模型',icon:'model'},note:{name:'记录本',icon:'note'},right:{name:'右侧腕带',icon:'band'},left:{name:'左侧腕带',icon:'band'},aid:{name:'社工卡',icon:'aid'},privacy:{name:'授权夹',icon:'privacy'}};
 const TASKS=[
  {id:'papers',name:'整理资料',short:'资料整理',recipe:['folder','check','teacher'],time:3.2,points:12,from:1,tip:'资料先核对，完成后交给带教。'},
