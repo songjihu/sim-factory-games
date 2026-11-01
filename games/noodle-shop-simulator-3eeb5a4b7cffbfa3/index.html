@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>开个面馆 · 山城清晨</title>
+<meta name="theme-color" content="#f6f1e6">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="开个面馆">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<script id="nozoom">
+/* 拦掉 iOS 双指缩放与双击放大 */
+(function(){
+  var stop=function(e){e.preventDefault();};
+  document.addEventListener("gesturestart",stop,{passive:false});
+  document.addEventListener("gesturechange",stop,{passive:false});
+  document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+})();
+</script>
+<style>
+:root{
+  --paper:#f6f1e6; --paper2:#ede5d2; --card:#fffdf6;
+  --ink:#2b2320; --ink2:#57493f; --muted:#8a7c6e; --line:#ddd2bc;
+  --chili:#b8402e; --chili2:#d4553f; --gold:#a8843c; --goldt:#6e5522;
+  --good:#2f6b4f; --bad:#a03428; --warn:#9a6a1f;
+  --shadow:0 1px 2px rgba(43,35,32,.08),0 4px 14px rgba(43,35,32,.06);
+  --r:12px;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --apph:100dvh;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font);background:var(--paper2);color:var(--ink);touch-action:manipulation;}
+#app{position:relative;margin:0 auto;height:var(--apph);max-width:520px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.12);}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;}
+.hidden{display:none!important;}
+button{font-family:var(--font);border:none;cursor:pointer;background:none;color:inherit;}
+/* ---------- 标题页 ---------- */
+#scr-title{align-items:center;justify-content:flex-start;}
+#title-art{width:100%;flex:0 0 auto;}
+.title-pad{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 20px 28px;width:100%;}
+.game-title{font-size:34px;letter-spacing:6px;font-weight:800;color:var(--ink);}
+.game-sub{margin-top:4px;color:var(--chili);font-size:13px;letter-spacing:3px;}
+.title-btns{margin-top:auto;width:100%;display:flex;flex-direction:column;gap:10px;}
+.btn{display:block;width:100%;padding:13px 16px;border-radius:var(--r);font-size:16px;font-weight:700;text-align:center;border:1.5px solid var(--line);background:var(--card);color:var(--ink);box-shadow:var(--shadow);}
+.btn.primary{background:var(--chili);border-color:var(--chili);color:#fff;}
+.btn:disabled{opacity:.45;}
+.tips{margin-top:12px;color:var(--muted);font-size:11px;text-align:center;line-height:1.7;}
+/* ---------- HUD ---------- */
+#hud{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card);border-bottom:1.5px solid var(--line);}
+.hud-item{display:flex;flex-direction:column;min-width:0;}
+.hud-k{font-size:10px;color:var(--muted);}
+.hud-v{font-size:14px;font-weight:800;white-space:nowrap;}
+.hud-v.warn{color:var(--bad);}
+#hud-spacer{flex:1;}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.icon-btn svg{width:20px;height:20px;}
+/* ---------- 客座 ---------- */
+#seats{flex:1 1 30%;min-height:118px;display:flex;gap:6px;padding:8px 8px 4px;}
+.seat{flex:1;background:var(--paper2);border:1.5px dashed var(--line);border-radius:var(--r);position:relative;padding:6px 4px;display:flex;flex-direction:column;align-items:center;overflow:hidden;transition:background .2s,border-color .2s;}
+.seat.occupied{border-style:solid;background:var(--card);box-shadow:var(--shadow);border-color:var(--line);}
+.seat.clickable{cursor:pointer;}
+.seat.occupied.clickable:active{background:#fdf6e8;}
+.seat.leaving{opacity:.4;}
+.seat .ava{width:40px;height:40px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:var(--paper2);}
+.seat .ava svg{width:100%;height:100%;display:block;}
+.seat .cname{font-size:10px;color:var(--ink2);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.order-bubble{margin-top:3px;background:var(--ink);color:#fdf6e8;font-size:11px;font-weight:700;border-radius:9px;padding:4px 6px;text-align:center;line-height:1.45;max-width:100%;}
+.order-bubble .spice{color:#ffb37f;}
+.order-bubble .extra{color:#ffe3a3;font-weight:500;font-size:10px;}
+.patience-wrap{margin-top:auto;width:100%;height:6px;background:var(--paper2);border-radius:3px;overflow:hidden;}
+.patience-bar{height:100%;background:var(--good);border-radius:3px;transition:width .2s linear;}
+.patience-bar.mid{background:var(--warn);}
+.patience-bar.low{background:var(--bad);}
+.seat-state{font-size:9px;color:var(--muted);margin-top:2px;height:12px;}
+/* ---------- 灶台 / 调味台 ---------- */
+#mid{flex:0 0 auto;padding:2px 8px;display:flex;flex-direction:column;gap:6px;}
+.row-label{font-size:10px;color:var(--muted);letter-spacing:1px;display:flex;align-items:center;gap:6px;}
+.row-label:before,.row-label:after{content:"";flex:1;height:1px;background:var(--line);}
+#burners{display:flex;gap:6px;}
+.burner{flex:1;height:64px;border-radius:var(--r);border:1.5px solid var(--line);background:var(--card);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:var(--shadow);}
+.burner.idle{background:var(--paper2);border-style:dashed;box-shadow:none;align-items:center;justify-content:center;color:var(--muted);font-size:11px;}
+.burner.idle .bname,.burner.idle .bhint,.burner.idle .cook-track{display:none;}
+.burner:not(.idle) .blabel{display:none;}
+.burner .blabel{pointer-events:none;}
+.burner.cooking{cursor:pointer;}
+.burner .bname{position:absolute;top:4px;left:7px;font-size:10px;color:var(--ink2);font-weight:700;z-index:2;}
+.burner .bhint{position:absolute;top:4px;right:7px;font-size:9px;color:var(--muted);z-index:2;}
+.cook-track{height:14px;margin:0 6px 8px;background:var(--paper2);border-radius:7px;position:relative;overflow:hidden;}
+.cook-fill{height:100%;width:0;background:linear-gradient(90deg,#d4553f,#b8402e);border-radius:7px;}
+.cook-zone{position:absolute;top:0;height:100%;background:rgba(47,107,79,.28);border-left:1.5px solid var(--good);border-right:1.5px solid var(--good);}
+.burner.done{border-color:var(--gold);background:#fbf3dd;}
+.burner.done .bhint{color:var(--goldt);font-weight:700;}
+.burner.trashed{animation:shake .3s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#prep{min-height:86px;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:6px 8px;box-shadow:var(--shadow);}
+#prep.empty{background:var(--paper2);border-style:dashed;box-shadow:none;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;}
+#prep .prep-head{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink2);}
+#prep .prep-head .tag{font-size:9px;font-weight:500;color:var(--muted);}
+.recipe-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.chip{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--paper2);color:var(--ink2);border:1.5px solid transparent;}
+.chip.done{background:var(--good);color:#fff;}
+.chip.next{border-color:var(--chili);color:var(--chili);font-weight:800;}
+.chip.result{margin-left:auto;background:var(--paper2);color:var(--ink2);}
+/* ---------- 佐料台 ---------- */
+#palette{flex:0 0 auto;padding:6px 8px 4px;}
+#palette-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.ing{padding:9px 2px;border-radius:10px;background:var(--card);border:1.5px solid var(--line);font-size:12px;font-weight:700;color:var(--ink);text-align:center;box-shadow:var(--shadow);}
+.ing:active{transform:scale(.96);}
+.ing.hint{border-color:var(--chili);color:var(--chili);animation:pulse 1s infinite;}
+.ing.err{background:var(--bad);color:#fff;border-color:var(--bad);}
+@keyframes pulse{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 3px rgba(184,64,46,.18)}}
+.ing:disabled{opacity:.5;}
+/* ---------- 底栏 ---------- */
+#foot{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 10px calc(8px + env(safe-area-inset-bottom));}
+#combo-tag{font-size:12px;font-weight:800;color:var(--chili);min-width:64px;}
+#day-progress{flex:1;height:6px;background:var(--paper2);border-radius:3px;overflow:hidden;}
+#day-progress .fill{height:100%;background:var(--gold);width:0;}
+#served-tag{font-size:11px;color:var(--muted);white-space:nowrap;}
+/* ---------- 弹窗 ---------- */
+#modal{position:absolute;inset:0;background:rgba(43,35,32,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50;}
+#modal .box{background:var(--paper);border-radius:16px;max-width:420px;width:100%;max-height:82%;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25);overflow:hidden;}
+.modal-head{padding:14px 16px 0;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.modal-head .stamp{font-size:10px;color:#fff;background:var(--chili);border-radius:4px;padding:2px 6px;letter-spacing:1px;}
+.modal-body{padding:10px 16px;font-size:13.5px;line-height:1.8;color:var(--ink2);overflow-y:auto;}
+.modal-body b{color:var(--ink);}
+.modal-body .figure{display:flex;justify-content:center;margin:6px 0;}
+.modal-body .figure svg{width:84px;height:84px;}
+.modal-btns{padding:6px 16px 16px;display:flex;flex-direction:column;gap:8px;}
+.settle-table{width:100%;border-collapse:collapse;margin:4px 0;}
+.settle-table td{padding:5px 2px;font-size:13px;border-bottom:1px dashed var(--line);}
+.settle-table td:last-child{text-align:right;font-weight:800;color:var(--ink);}
+.settle-table tr.total td{border-bottom:none;font-size:15px;color:var(--chili);}
+.shop-item{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--line);}
+.shop-item .si-info{flex:1;min-width:0;}
+.shop-item .si-name{font-size:14px;font-weight:800;}
+.shop-item .si-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.shop-item .si-buy{flex:0 0 auto;padding:8px 12px;border-radius:9px;background:var(--chili);color:#fff;font-size:12px;font-weight:800;}
+.shop-item .si-buy:disabled{background:var(--line);color:var(--muted);}
+.shop-item.owned .si-name{color:var(--good);}
+/* ---------- toast ---------- */
+#toast-wrap{position:absolute;left:0;right:0;top:64px;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:80;pointer-events:none;}
+.toast{background:rgba(43,35,32,.92);color:#fdf6e8;font-size:13px;font-weight:700;padding:8px 16px;border-radius:20px;animation:toastin .18s ease-out;}
+.toast.bad{background:rgba(160,52,40,.95);}
+.toast.good{background:rgba(47,107,79,.95);}
+@keyframes toastin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+/* ---------- 结局 ---------- */
+#scr-ending{padding:20px 18px;overflow-y:auto;}
+.ending-title{font-size:26px;font-weight:800;color:var(--chili);letter-spacing:2px;}
+.ending-grade{font-size:12px;color:var(--goldt);letter-spacing:2px;margin-top:2px;}
+.ending-body{margin-top:12px;font-size:14px;line-height:1.9;color:var(--ink2);}
+.ending-stats{margin-top:14px;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:10px 14px;}
+.ending-stats div{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line);}
+.ending-stats div:last-child{border-bottom:none;}
+#poster-canvas{width:100%;border-radius:var(--r);border:1.5px solid var(--line);margin-top:14px;}
+.float-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,35,32,.55);color:#fdf6e8;font-size:15px;font-weight:800;letter-spacing:2px;z-index:60;flex-direction:column;gap:8px;}
+.float-note small{font-size:11px;font-weight:400;color:#d8cfc2;}
+.phone-order{display:flex;align-items:center;gap:8px;margin:4px 8px;padding:7px 10px;background:#fbf3dd;border:1.5px solid var(--gold);border-radius:10px;font-size:12px;font-weight:700;color:var(--goldt);}
+.ing{display:flex;align-items:center;justify-content:center;gap:3px;min-height:42px;padding:4px 2px!important}.ing svg{width:25px;height:25px;flex-shrink:0}.ing span{font-size:12px}@media(max-width:360px){.ing{flex-direction:column;gap:0}.ing svg{width:22px;height:22px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 标题 -->
+  <div id="scr-title" class="screen">
+    <svg id="title-art" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="520" height="300" fill="#f6f1e6"/>
+      <rect x="0" y="250" width="520" height="50" fill="#e7dcc4"/>
+      <!-- 远山 -->
+      <path d="M0,210 Q80,150 160,200 T330,190 T520,205 V250 H0 Z" fill="#ddd2bc" opacity=".7"/>
+      <!-- 屋檐 -->
+      <path d="M40,96 L260,66 L480,96 L480,110 L40,110 Z" fill="#8a3a2a"/>
+      <path d="M28,110 L492,110 L492,118 L28,118 Z" fill="#6e2d20"/>
+      <!-- 匾额 -->
+      <rect x="188" y="122" width="144" height="40" rx="6" fill="#2b2320"/>
+      <text x="260" y="149" font-size="22" fill="#e8b84b" text-anchor="middle" font-weight="bold" letter-spacing="4">陈记小面</text>
+      <!-- 灯笼 -->
+      <line x1="120" y1="118" x2="120" y2="132" stroke="#57493f" stroke-width="2"/>
+      <ellipse cx="120" cy="148" rx="14" ry="17" fill="#c33a28"/>
+      <ellipse cx="120" cy="148" rx="6" ry="17" fill="#a52e1e"/>
+      <text x="120" y="153" font-size="11" fill="#f6d8a0" text-anchor="middle">面</text>
+      <line x1="400" y1="118" x2="400" y2="132" stroke="#57493f" stroke-width="2"/>
+      <ellipse cx="400" cy="148" rx="14" ry="17" fill="#c33a28"/>
+      <ellipse cx="400" cy="148" rx="6" ry="17" fill="#a52e1e"/>
+      <text x="400" y="153" font-size="11" fill="#f6d8a0" text-anchor="middle">面</text>
+      <!-- 铺门 -->
+      <rect x="60" y="180" width="400" height="70" rx="8" fill="#fffdf6" stroke="#ddd2bc" stroke-width="2"/>
+      <rect x="76" y="196" width="90" height="54" rx="4" fill="#e9dfc8"/>
+      <rect x="354" y="196" width="90" height="54" rx="4" fill="#e9dfc8"/>
+      <!-- 一碗面 -->
+      <g transform="translate(260,222)">
+        <path d="M-34,0 A34,22 0 0 0 34,0 L30,10 A30,16 0 0 1 -30,10 Z" fill="#b8402e"/>
+        <path d="M-30,-2 Q0,10 30,-2 L26,6 A26,12 0 0 1 -26,6 Z" fill="#8f3122"/>
+        <path d="M-24,-4 Q0,4 24,-4 Q12,-14 0,-12 Q-14,-14 -24,-4 Z" fill="#f0d9a8"/>
+        <path d="M-18,-7 Q0,-1 18,-7" stroke="#d4553f" stroke-width="3" fill="none"/>
+        <circle cx="-8" cy="-9" r="3.5" fill="#7c5a2e"/>
+        <circle cx="9" cy="-10" r="3" fill="#5e7a4a"/>
+        <path d="M34,-6 L52,-26 M38,0 L60,-14" stroke="#8a5a34" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <text x="260" y="278" font-size="12" fill="#8a7c6e" text-anchor="middle" letter-spacing="2">清晨五点半 · 竹器巷</text>
+    </svg>
+    <div class="title-pad">
+      <div class="game-title">开个面馆</div>
+      <div class="game-sub" data-version="1.0.2">山城清晨 · 三十天</div>
+      <div class="title-btns">
+        <button class="btn primary" id="btn-continue">继续经营</button>
+        <button class="btn" id="btn-new">开张</button>
+        <button class="btn" id="btn-help">怎么玩</button><button class="btn" id="btn-save-tools">存档管理</button>
+      </div>
+      <div class="tips" id="title-tips">外婆的面馆，三十天，一万五的债。<br>灶上的火不等人，手要快，心要稳。</div>
+    </div>
+  </div>
+  <!-- 游戏 -->
+  <div id="scr-game" class="screen hidden">
+    <div id="hud">
+      <div class="hud-item"><span class="hud-k" id="hud-day-k">第1天</span><span class="hud-v" id="hud-day">清晨</span></div>
+      <div class="hud-item"><span class="hud-k">钱</span><span class="hud-v" id="hud-money">¥0</span></div>
+      <div class="hud-item"><span class="hud-k">口碑</span><span class="hud-v" id="hud-rep">50</span></div>
+      <div class="hud-item"><span class="hud-k">欠款</span><span class="hud-v warn" id="hud-debt">¥15000</span></div>
+      <div id="hud-spacer"></div>
+      <button class="icon-btn" id="btn-pause" aria-label="暂停"><svg viewBox="0 0 24 24" fill="none" stroke="#57493f" stroke-width="2.4"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button>
+    </div>
+    <div id="seats"></div>
+    <div id="phone-slot"></div>
+    <div id="mid">
+      <div class="row-label">灶 台</div>
+      <div id="burners"></div>
+      <div id="prep" class="empty">调味台空着 —— 捞一碗面过来</div>
+    </div>
+    <div id="palette">
+      <div id="palette-grid"></div>
+    </div>
+    <div id="foot">
+      <span id="combo-tag"></span>
+      <div id="day-progress"><div class="fill"></div></div>
+      <span id="served-tag">0 碗</span>
+    </div>
+  </div>
+  <!-- 结局 -->
+  <div id="scr-ending" class="screen hidden"></div>
+  <div id="modal" class="hidden"><div class="box" id="modal-box"></div></div>
+  <div id="toast-wrap"></div>
+</div>
+<script>
+/* =====================================================================
+   开个面馆 · 山城清晨 —— 单文件实时经营动作游戏
+   玩法：实时时间管理（接单-煮面-调味-出餐），回合外有日结/升级/事件。
+   结构：BALANCE(全部数值) -> DATA(菜/佐料/升级/事件/常客) -> RNG -> ENGINE(纯逻辑)
+         -> SAVE -> AUDIO -> UI -> SERVICE(实时循环) -> BOOT
+   ===================================================================== */
+
+/* =====================================================================
+   BALANCE —— 所有数值都在这里。逻辑里不许出现魔数。
+   货币单位:元。
+   ===================================================================== */
+const BALANCE = {
+  ver: 1,
+  saveKey: "kmg_g201_save",
+  metaKey: "kmg_g201_meta",
+  days: 30,
+  debt: 6000,                        // 外婆的债（终局判定用）
+  payFloor: 300,                     // 还款后至少留的生活费
+  milestones: { 10: 1500, 20: 3500, 30: 6000 },  // 分段还款目标(累计已还)
+  milestoneDays: [10, 20, 30],
+  interestMiss: 600,                 // 错过里程碑,利息加到下一档
+  repStart: 50,
+  seats: 4,
+  noodleTime: 3.5,                   // 煮面秒数
+  noodleFast: 2.9,                   // 深锅升级后
+  perfect: 0.35,                     // 完美窗口 ±s
+  good: 0.8,                         // 合格窗口 ±s
+  soggy: 0.9,                        // 超时这么久,面坨了(自动砸)
+  quality: { perfect: 1.35, ok: 1.0, meh: 0.7, ruined: 0 },
+  tierLine: { perfect: 95, ok: 70, meh: 40 },
+  noodleBase: { perfect: 100, ok: 78, raw: 45 },
+  wrongPenalty: 18,                  // 佐料点错一次扣的品质
+  comboStep: 0.05, comboMax: 0.5,
+  rep: { perfect: 0.9, ok: 0.2, meh: 0, ruined: -2.5, timeout: -3 },
+  sodaChance: 0.22, sodaPrice: 3, sodaPriceHot: 5,
+  dailyCost: { rent: 50, util: 18, spicePerBowl: 1.5 },
+  customersBase: 12, customersGrowth: 0.95,
+  spawnGap: { start: 6.5, end: 3.0 },
+  doubleSpawnP: 0.28,
+  patience: 26, patienceUpgraded: 31,
+  phoneTime: 24, phoneRingTime: 5, phoneP: 0.16,
+  price: { su: 10, jz: 14, nr: 19, fc: 19, wz: 22 },
+  unlock: { jz: 150, nr: 500, fc: 800, wz: 1000 },
+  spiceCost: { 0: 0.4, 1: 1.5, 2: 2.2 },  // 微辣/中辣/特辣 每碗佐料成本
+  endingLine: { second: 5000, community: 1200, fiftyRep: 85, grandmaRep: 90 },
+};
+
+/* =====================================================================
+   DATA —— 菜 / 佐料 / 升级 / 事件 / 常客
+   ===================================================================== */
+const TOPPINGS = {
+  suan:  "蒜水",   jy: "酱油",  yl: "油辣子", hj: "花椒",  yc: "芽菜",
+  hs:    "花生",   ch: "葱花",  jz: "杂酱",   nr: "牛肉",  fc: "肥肠",
+  wz:    "豌杂",   dan: "煎蛋", qing: "青菜",
+};
+const SPICE_NAMES = ["免辣", "微辣", "中辣", "特辣"];
+
+/* 菜单：base 是配方（油辣子份数按辣度追加） */
+const DISHES = {
+  su: { name: "素小面", base: ["suan", "jy", "yl", "hj", "ch"] },
+  jz: { name: "杂酱面", base: ["suan", "jy", "yl", "jz", "ch"] },
+  nr: { name: "牛肉面", base: ["suan", "jy", "yl", "hj", "nr"] },
+  fc: { name: "肥肠面", base: ["suan", "jy", "yc", "yl", "fc"] },
+  wz: { name: "豌杂面", base: ["suan", "jy", "yl", "wz", "hs"] },
+};
+const MENU_ORDER = ["su", "jz", "nr", "fc", "wz"];
+const EXTRA_TAPS = { 1: 0, 2: 1, 3: 2 };  // 辣度 -> 额外油辣子份数
+
+const UPGRADES = [
+  { id: "pot",    name: "深锅",        cost: 300, desc: "煮面 3.5 秒 → 2.9 秒。" },
+  { id: "burner2",name: "第二灶眼",    cost: 450, desc: "可以同时煮两碗面。" },
+  { id: "burner3",name: "第三灶眼",    cost: 1000, desc: "三碗同煮。要先有第二灶眼。", req: "burner2" },
+  { id: "stool",  name: "换掉晃腿凳",  cost: 350, desc: "客人耐心 26 秒 → 31 秒。" },
+  { id: "sign",   name: "招牌灯箱",    cost: 500, desc: "每名客人到店率提升，晚市不断客。" },
+  { id: "phone",  name: "外卖电话",    cost: 650, desc: "会接到外卖单：不占座，但限时更死。" },
+  { id: "memo",   name: "记忆手",      cost: 450, desc: "调味台会轻轻提示下一味佐料。" },
+  { id: "fridge", name: "汽水冰柜",    cost: 700, desc: "两成客人搭一瓶汽水，高温天卖得更俏。" },
+];
+
+/* 事件：cond 满足才进抽选池；once 只来一次；apply 改当日参数 */
+const EVENTS = [
+  { id:"rain",   name:"阴雨天",      day:[2,30], w:8,
+    text:"下起了雨，巷口积水。赶路的人少了，躲雨的多了。",
+    apply:d=>{ d.spawnMul*=0.62; d.patienceMul*=1.25; } },
+  { id:"sun",    name:"毒太阳",      day:[3,30], w:7,
+    text:"太阳毒得很，汗流进眼睛。过路人都想找口吃的、喝口凉的。",
+    apply:d=>{ d.spawnMul*=1.18; d.patienceMul*=0.85; d.hot=true; } },
+  { id:"pepper", name:"辣椒涨价",    day:[5,30], w:6,
+    text:"海椒涨了价。今天每碗面的佐料成本翻倍。",
+    apply:d=>{ d.spiceMul=2; } },
+  { id:"rush",   name:"早高峰",      day:[2,30], w:6,
+    text:"上班的人挤在巷口。前面一阵子人来得又急又密。",
+    apply:d=>{ d.rushFront=true; } },
+  { id:"sick",   name:"重感冒",      day:[4,30], w:4,
+    text:"你头昏脑涨，手比平时慢半拍。（花 20 元买药可以顶过去）",
+    choices:[
+      { name:"买药顶着（-20元）", cost:20, fn:s=>{} },
+      { name:"硬撑", fn:s=>{ s.daySick=true; } },
+    ]},
+  { id:"gaokao", name:"高考日",      day:[7,14], w:3, once:true,
+    text:"巷尾考场外拉了横幅。今天客人大多只要微辣，说话都轻声细语。",
+    apply:d=>{ d.forceSpice=1; d.patienceMul*=1.3; } },
+  { id:"student",name:"开学季",      day:[11,16], w:5, once:true,
+    text:"附近学校开学，送孩子的家长顺路进来嗦一碗。",
+    apply:d=>{ d.spawnMul*=1.25; } },
+  { id:"chain",  name:"连锁店开业",  day:[12,30], w:6, once:true,
+    text:"「渝面故事」在街口开业，霓虹灯亮得晃眼。有熟客嘀咕要去尝个鲜。",
+    choices:[
+      { name:"挂出「外婆手作」横幅（-50元）", cost:50, fn:s=>{ s.chainSoft=true; } },
+      { name:"不怕", fn:s=>{} },
+    ]},
+  { id:"chain2", name:"连锁店促销",  day:[16,26], w:5, once:true, cond:s=>s.G.chainHappened,
+    text:"渝面故事搞「第二碗半价」。今天客流明显被分走一截。",
+    apply:d=>{ d.spawnMul*= s.chainSoft?0.85:0.68; } },
+  { id:"blogger",name:"美食博主",    day:[8,30], w:6, once:true, cond:s=>s.G.rep>=58,
+    text:"一个举着手机的年轻人进门拍照：「老板，听说过你这碗面。」",
+    choices:[
+      { name:"送他一碗牛肉面（-18元）", cost:18, fn:s=>{ s.G.rep=Math.min(100,s.G.rep+8); s.dayFlavor="博主的帖子火了，下午人多起来。"; } },
+      { name:"忙生意，没空搭理", fn:s=>{} },
+    ]},
+  { id:"health", name:"卫生检查",    day:[9,30], w:4, cond:s=>s.G.rep<58,
+    text:"街道的人来看后厨。灶台上的油垢有点扎眼。",
+    choices:[
+      { name:"花 80 块请人深度保洁", cost:80, fn:s=>{ s.G.rep=Math.min(100,s.G.rep+3); } },
+      { name:"说都在计划里", fn:s=>{ if(s.rng()<0.5){ s.G.rep=Math.max(0,s.G.rep-6); s.dayFlavor="检查的人皱了皱眉，第二天巷里传闲话。"; } } },
+    ]},
+  { id:"belly",  name:"有人说吃坏了", day:[10,30], w:3, once:true, cond:s=>s.G.rep>=66,
+    text:"一位客人捂着肚子说昨天的面不对劲。街坊都看着你。",
+    choices:[
+      { name:"免单道歉，送一包药（-60元）", cost:60, fn:s=>{ s.G.rep=Math.min(100,s.G.rep+2); } },
+      { name:"说明进货单据", fn:s=>{ if(s.rng()<0.45){ s.G.rep=Math.max(0,s.G.rep-8); s.dayFlavor="话没说圆，人悻悻走了。"; } } },
+    ]},
+  { id:"power",  name:"跳闸",        day:[6,30], w:4,
+    text:"听说这一片老跳闸。你把应急的蜡烛放在了灶边。",
+    apply:d=>{ d.blackout=true; } },
+  { id:"price",  name:"隔壁降价",    day:[13,30], w:4,
+    text:"街口小面摊挂出「素小面七块」。你咬咬牙，今天跟着降。",
+    apply:d=>{ d.priceCut=2; } },
+  { id:"vip",    name:"老周带工友",  day:[10,30], w:6, once:true, cond:s=>s.G.regulars.zhou>=3,
+    text:"老周领了四个工友进门：「就这家，味道正！」",
+    apply:d=>{ d.spawnAdd=4; } },
+  { id:"troll",  name:"职业差评师",  day:[12,30], w:5, once:true, cond:s=>s.G.rep>=85,
+    text:"有人坐下就举着手机拍照，面还没上就开始打字。",
+    choices:[
+      { name:"请这碗面，好话好说（-25元）", cost:25, fn:s=>{ s.dayFlavor="对方删了草稿，临走说「其实还行」。"; } },
+      { name:"随他写", fn:s=>{ s.G.rep=Math.max(0,s.G.rep-4); } },
+    ]},
+  { id:"warm",   name:"回南天",      day:[3,30], w:4,
+    text:"回南天，墙壁淌水，佐料受潮。今天佐料成本高一点。",
+    apply:d=>{ d.spiceMul=1.6; } },
+  { id:"anniv",  name:"最后一天",    day:[30,30], w:99,
+    text:"第三十天。巷口的黄桷树落了一地叶子。今天的每一碗，都是给外婆看的。",
+    apply:d=>{ d.spawnMul*=1.1; } },
+];
+
+/* 常客故事线：stage 达到天数触发，fn 给增益 */
+const REGULARS = [
+  { id:"zhou",  name:"棒棒老周",  unlockDay:2, order:{ dishId:"su", spice:2 },
+    svg:"<svg viewBox='0 0 80 80'><rect width='80' height='80' fill='#dce8d4'/><circle cx='40' cy='32' r='17' fill='#c8956a'/><path d='M23,30 Q40,12 57,30 L57,26 Q40,8 23,26 Z' fill='#e8e2d2'/><rect x='24' y='46' width='32' height='22' rx='6' fill='#5e7a4a'/><line x1='62' y1='14' x2='66' y2='64' stroke='#8a5a34' stroke-width='4' stroke-linecap='round'/><circle cx='30' cy='32' r='2' fill='#2b2320'/><circle cx='50' cy='32' r='2' fill='#2b2320'/><path d='M33,41 Q40,45 47,41' stroke='#7c5a3e' stroke-width='2' fill='none'/></svg>",
+    scenes:[
+      { day:2,  text:"天不亮，棒棒老周把扁担靠在门边：「二两素小面，多放花椒。」他挑完这担要去医院陪老伴。", gain:"老周记住了你的手艺。" },
+      { day:9,  text:"老周带来一小袋自家晒的花椒面：「巷子里就你家的面，配得上这个。」", gain:"口碑 +3", fn:s=>{ s.G.rep=Math.min(100,s.G.rep+3); } },
+      { day:17, text:"老周的老伴出院了。他请整条巷子的棒棒吃面——这天的热闹，是你给的。", gain:"进货折扣：佐料成本 -20%", fn:s=>{ s.zhouDiscount=true; } },
+    ]},
+  { id:"chen",  name:"陈记者",    unlockDay:3, order:{ dishId:"nr", spice:1 },
+    svg:"<svg viewBox='0 0 80 80'><rect width='80' height='80' fill='#e3e0ee'/><circle cx='40' cy='32' r='17' fill='#d9ab84'/><rect x='26' y='24' width='28' height='9' rx='2' fill='none' stroke='#2b2320' stroke-width='2'/><line x1='40' y1='24' x2='40' y2='33' stroke='#2b2320' stroke-width='2'/><rect x='22' y='46' width='36' height='22' rx='6' fill='#4a5680'/><rect x='52' y='50' width='8' height='12' rx='2' fill='#f6f1e6' stroke='#2b2320'/><circle cx='30' cy='32' r='2' fill='#2b2320'/><circle cx='50' cy='32' r='2' fill='#2b2320'/><path d='M34,42 Q40,44 46,42' stroke='#7c5a3e' stroke-width='2' fill='none'/></svg>",
+    scenes:[
+      { day:3,  text:"戴眼镜的陈记者坐在角落，边吃边在小本子上写什么。走时他说：「后天还来。」", gain:"他好像在写你的店。" },
+      { day:11, text:"《山城晚报》角落登了一篇《竹器巷的二两面》。早上六点，门口排起了小队。", gain:"口碑 +8，客流微增", fn:s=>{ s.G.rep=Math.min(100,s.G.rep+8); s.pressBoost=true; } },
+      { day:21, text:"陈记者带来消息：市里在评「小面五十强」，他把你的店报上去了。", gain:"口碑 +5", fn:s=>{ s.G.rep=Math.min(100,s.G.rep+5); s.fiftyNominated=true; } },
+    ]},
+  { id:"lei",   name:"雷师傅",    unlockDay:5, order:{ dishId:"jz", spice:2 },
+    svg:"<svg viewBox='0 0 80 80'><rect width='80' height='80' fill='#efe3d0'/><circle cx='40' cy='34' r='16' fill='#c8956a'/><path d='M22,30 Q40,10 58,30 L58,34 L22,34 Z' fill='#3e5a78'/><rect x='30' y='8' width='20' height='7' rx='3' fill='#3e5a78'/><rect x='24' y='46' width='32' height='22' rx='6' fill='#6e5522'/><circle cx='31' cy='34' r='2' fill='#2b2320'/><circle cx='49' cy='34' r='2' fill='#2b2320'/><path d='M34,42 Q40,45 46,42' stroke='#7c5a3e' stroke-width='2' fill='none'/></svg>",
+    scenes:[
+      { day:5,  text:"出租车司机雷师傅把车停在巷口，跑进来：「三两面，快！车还双闪着。」", gain:"他记住了这里出餐快。" },
+      { day:14, text:"雷师傅在电台闲聊里提了一嘴你的面馆。这几天的夜班司机都绕进来吃。", gain:"口碑 +3", fn:s=>{ s.G.rep=Math.min(100,s.G.rep+3); } },
+      { day:23, text:"雷师傅拍着方向盘打电话：「兄弟些，都来陈记！老规矩，各人报各人的！」", gain:"外卖电话响了更勤", fn:s=>{ s.leiBoost=true; } },
+    ]},
+  { id:"niang", name:"老板娘",    unlockDay:6, order:{ dishId:"fc", spice:1 },
+    svg:"<svg viewBox='0 0 80 80'><rect width='80' height='80' fill='#f2ded6'/><circle cx='40' cy='33' r='16' fill='#d9ab84'/><path d='M24,30 Q26,10 40,12 Q54,10 56,30 L56,40 Q52,44 50,40 L50,30 Q40,36 30,30 L30,40 Q28,44 24,40 Z' fill='#57493f'/><rect x='24' y='47' width='32' height='21' rx='6' fill='#a8524a'/><path d='M34,47 L34,68 M46,47 L46,68' stroke='#f6f1e6' stroke-width='3'/><circle cx='31' cy='33' r='2' fill='#2b2320'/><circle cx='49' cy='33' r='2' fill='#2b2320'/><path d='M35,42 Q40,45 45,42' stroke='#b8402e' stroke-width='2' fill='none'/></svg>",
+    scenes:[
+      { day:6,  text:"隔壁火锅店的老板娘端来一盆自家泡的海椒：「妹妹，拿去用。你外婆当年也这样帮过我。」", gain:"口碑 +3", fn:s=>{ s.G.rep=Math.min(100,s.G.rep+3); } },
+      { day:15, text:"老板娘来收泡菜坛子，顺手教你吊汤的火候：「汤宽面才立得起。」", gain:"煮面窗口放宽", fn:s=>{ s.niangSoup=true; } },
+      { day:24, text:"老板娘把一面「山城味道」的小锦旗挂在你墙上：「名次不重要，街坊认你，就算数。」", gain:"进货八折：佐料成本 -20%", fn:s=>{ s.niangDiscount=true; } },
+    ]},
+];
+
+const SURNAMES = ["李","王","张","刘","陈","杨","黄","赵","周","吴","徐","孙","马","朱","胡","郭","何","高","林","罗","郑","梁","谢","宋","唐","许","韩","冯","邓","曹","彭","曾","肖","田","董","袁","蔡","蒋","余","杜"];
+const GIVEN = ["师傅","孃孃","大姐","小妹","老师","哥","姐","叔叔","阿姨","先生","女士"];
+
+/* =====================================================================
+   RNG —— 种子化 LCG，可复现
+   ===================================================================== */
+function makeRng(seed){
+  let s = seed >>> 0;
+  const f = function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  f.seed = function(){ return seed; };
+  return f;
+}
+
+/* =====================================================================
+   ENGINE —— 纯逻辑，可无头测试
+   ===================================================================== */
+function unlockedMenu(G){
+  const arr = ["su"];
+  MENU_ORDER.forEach(id=>{ if(id!=="su" && G.upgrades["menu_"+id]) arr.push(id); });
+  return arr;
+}
+
+/* 生成一个订单。force: {dishId, spice} 用于常客点单（不受菜单解锁限制） */
+function makeOrder(G, rng, dayParams, force){
+  const menu = unlockedMenu(G);
+  let dishId;
+  if(force && DISHES[force.dishId]){ dishId = force.dishId; }
+  else {
+    /* 越贵的面越靠后才可能被点，前期以素小面为主 */
+    const weights = menu.map((id,i)=> 10 - i*1.6 + (dayParams.dayNum*0.12));
+    let total = weights.reduce((a,b)=>a+b,0), roll = rng()*total;
+    dishId = menu[0];
+    for(let i=0;i<menu.length;i++){ roll -= weights[i]; if(roll<=0){ dishId = menu[i]; break; } }
+  }
+  const dish = DISHES[dishId];
+  /* 辣度：随天数与口碑，特辣概率上升 */
+  let spice = 1;
+  if(force && force.spice){ spice = force.spice; }
+  else if(dayParams.forceSpice){ spice = 1; }
+  else {
+    const r = rng();
+    const hotP = Math.min(0.5, 0.12 + dayParams.dayNum*0.012 + Math.max(0,(G.rep-50))*0.004);
+    if(r < hotP*0.4) spice = 3; else if(r < hotP) spice = 2;
+  }
+  const egg = force ? false : rng() < Math.min(0.3, 0.06 + dayParams.dayNum*0.007);
+  const green = force ? false : rng() < Math.min(0.35, 0.08 + dayParams.dayNum*0.008);
+  /* 配方 */
+  const recipe = dish.base.slice();
+  for(let i=0;i<EXTRA_TAPS[spice];i++){
+    const at = recipe.indexOf("yl");
+    recipe.splice(at+1, 0, "yl");
+  }
+  if(egg) recipe.push("dan");
+  if(green) recipe.push("qing");
+  const price = BALANCE.price[dishId] - (dayParams.priceCut||0);
+  return {
+    dishId, dishName: dish.name, spice, egg, green, price: Math.max(5,price),
+    recipe,
+    label: dish.name + (spice!==1 ? "·"+SPICE_NAMES[spice] : "") + (egg?"·加蛋":"") + (green?"·加青":""),
+    custName: force && force.name ? force.name : SURNAMES[Math.floor(rng()*SURNAMES.length)] + GIVEN[Math.floor(rng()*GIVEN.length)],
+  };
+}
+
+/* 当日客流参数 */
+function dayParams(G, dayNum, weather, eventApplies){
+  const d = {
+    dayNum, spawnMul:1, patienceMul:1, spiceMul:1, spawnAdd:0,
+    priceCut:0, forceSpice:0, rushFront:false, blackout:false, hot:false, sick:false,
+  };
+  (eventApplies||[]).forEach(fn=>fn(d));
+  if(weather==="rain") d.spawnMul*=0.62;
+  if(G.upgrades.sign) d.spawnMul*=1.12;
+  if(G.pressBoost) d.spawnMul*=1.08;
+  if(G.upgrades.phone && G.leiBoost) d.phoneMul = 1.6; else d.phoneMul = 1;
+  return d;
+}
+
+function customersOfDays(G, dayNum, spawnMul, spawnAdd){
+  const n = BALANCE.customersBase + (dayNum-1)*BALANCE.customersGrowth;
+  return Math.max(4, Math.round(n*spawnMul) + (spawnAdd||0));
+}
+
+/* 品质结算：纯函数 */
+function computeQuality(noodleResult, wrongTaps){
+  const base = BALANCE.noodleBase[noodleResult];
+  return Math.max(0, base - wrongTaps*BALANCE.wrongPenalty);
+}
+function qualityTier(q){
+  if(q >= BALANCE.tierLine.perfect) return "perfect";
+  if(q >= BALANCE.tierLine.ok) return "ok";
+  if(q >= BALANCE.tierLine.meh) return "meh";
+  return "ruined";
+}
+function payOf(order, tier, comboCount){
+  if(tier==="ruined") return 0;
+  let mult = BALANCE.quality[tier];
+  const comboBonus = Math.min(BALANCE.comboMax, Math.max(0,comboCount-1)*BALANCE.comboStep);
+  return Math.round(order.price * mult * (1+comboBonus));
+}
+function repDelta(tier){ return BALANCE.rep[tier]; }
+
+/* 日成本 */
+function dayCost(bowls, spiceMul, G){
+  return BALANCE.dailyCost.rent + BALANCE.dailyCost.util + Math.round(bowls*BALANCE.dailyCost.spicePerBowl*spiceMul);
+}
+
+/* 结局判定：纯函数 */
+function endingCalc(G){
+  const debtPaid = G.debtPaid >= BALANCE.debt;
+  const M = G.regulars;
+  const allLines = M.zhou>=3 && M.chen>=3 && M.lei>=3 && M.niang>=3;
+  const L = BALANCE.endingLine;
+  if(!debtPaid) return { id:"transfer", grade:"乙下", title:"转让离场" };
+  if(G.missedMilestones===0 && allLines && G.rep >= L.grandmaRep) return { id:"grandma", grade:"甲上", title:"外婆的味道" };
+  if(G.money >= L.second) return { id:"second", grade:"甲上", title:"二店开张" };
+  if(G.fiftyNominated && G.rep >= L.fiftyRep) return { id:"fifty", grade:"甲", title:"小面五十强" };
+  if(G.money >= L.community || G.rep >= 72) return { id:"community", grade:"乙上", title:"社区味道" };
+  return { id:"struggle", grade:"乙", title:"巷子深处" };
+}
+
+/* =====================================================================
+   STATE / SAVE
+   ===================================================================== */
+let G = null;              // 全局进度（可存档）
+let R = null;              // 当日实时状态（不存档）
+let HEADLESS = (typeof document === "undefined");
+
+function newGame(seed){
+  G = {
+    ver: BALANCE.ver,
+    seed: seed || (Date.now() % 1000000000),
+    day: 1, money: 800, debtPaid: 0, rep: BALANCE.repStart,
+    missedMilestones: 0, interest: 0,
+    upgrades: { su: true },   // menu_su 恒解锁；upgrades 里 menu_* 代表已购菜单
+    regulars: { zhou:0, chen:0, lei:0, niang:0 },
+    flags: {}, fiftyNominated:false, chainSoft:false, chainHappened:false,
+    zhouDiscount:false, niangDiscount:false, niangSoup:false, leiBoost:false, pressBoost:false,
+    bestCombo:0, totalServed:0, totalRuined:0, perfectStreak:0,
+    dayLog: [],
+  };
+  G.upgrades.menu_su = true;
+}
+let saveStamp = 0;
+function saveGame(){
+  if(HEADLESS || !G) return;
+  try{
+    const current=JSON.parse(localStorage.getItem(BALANCE.saveKey)||'null');
+    if(current && (current.savedAt||0)>saveStamp){ toast('另一标签已有较新进度，请刷新后继续'); if(R)R.paused=true; return; }
+    G.savedAt=Date.now(); saveStamp=G.savedAt;
+    localStorage.setItem(BALANCE.saveKey, JSON.stringify(G));
+  }catch(e){ toast('存档未能写入，请检查浏览器存储空间'); }
+}
+function loadGame(){
+  if(HEADLESS) return null;
+  try{
+    const raw = localStorage.getItem(BALANCE.saveKey);
+    if(!raw) return null;
+    const g = JSON.parse(raw);
+    if(!g || g.ver !== BALANCE.ver) return null;
+    if(!validSave(g)) return null; G = g; saveStamp=g.savedAt||0; return G;
+  }catch(e){ return null; }
+}
+
+function validSave(g){
+ return g && g.ver===BALANCE.ver && Number.isInteger(g.day) && g.day>=1 && g.day<=30 &&
+ ['money','debtPaid','rep','totalServed','totalRuined','missedMilestones','interest'].every(k=>Number.isFinite(g[k])) &&
+ g.money>=0 && g.debtPaid>=0 && g.debtPaid<=BALANCE.debt && g.upgrades && g.regulars && g.flags && Array.isArray(g.dayLog);
+}
+function saveTools(){
+ modal('存档管理','<p>进度保存在当前设备、当前浏览器。每日开张与收摊保存；营业途中恢复会从本日开张重新开始。</p><p>主入口与备用入口互不自动同步。切换前导出，在新入口导入。导入会替换此入口当前进度。</p>',[
+ {name:'导出存档',fn:()=>{if(!G){toast('请先开张');return;} const a=document.createElement('a');const u=URL.createObjectURL(new Blob([JSON.stringify({game:'G201',save:G,meta:META})],{type:'application/json'}));a.href=u;a.download='开个面馆-存档.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}},
+ {name:'导入存档',fn:()=>{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=async()=>{try{const f=i.files[0];if(!f||f.size>1000000)throw Error();const d=JSON.parse(await f.text());if(d.game!=='G201'||!validSave(d.save))throw Error();G=d.save;saveStamp=JSON.parse(localStorage.getItem(BALANCE.saveKey)||'null')?.savedAt||0;saveGame();if(d.meta && typeof d.meta.endings==='object'){META=d.meta;saveMeta();}toTitle();toast('存档已导入');}catch(e){toast('存档损坏或版本不匹配，原进度已保留');}};i.click();}},
+ {name:'返回',primary:true,fn:()=>{}}]);
+}
+
+function saveMeta(){ if(HEADLESS) return; try{ localStorage.setItem(BALANCE.metaKey, JSON.stringify(META)); }catch(e){} }
+let META = { endings:{}, bestMoney:0, bestRep:0, runs:0 };
+function loadMeta(){
+  if(HEADLESS) return;
+  try{ const raw = localStorage.getItem(BALANCE.metaKey); if(raw) META = Object.assign(META, JSON.parse(raw)); }catch(e){}
+}
+
+/* =====================================================================
+   AUDIO —— Web Audio 合成，无音频文件
+   ===================================================================== */
+const AUDIO = (()=>{
+  let ctx = null;
+  function ac(){
+    if(HEADLESS) return null;
+    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(ctx && ctx.state==="suspended") ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur, type, vol, when, slide){
+    const c = ac(); if(!c) return;
+    const t = c.currentTime + (when||0);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type||"sine"; o.frequency.setValueAtTime(freq, t);
+    if(slide) o.frequency.exponentialRampToValueAtTime(slide, t+dur);
+    g.gain.setValueAtTime(vol||0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  function noise(dur, vol){
+    const c = ac(); if(!c) return;
+    const len = c.sampleRate*dur, buf = c.createBuffer(1, len, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<len;i++) data[i] = (Math.random()*2-1)*(1-i/len);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const g = c.createGain(); g.gain.value = vol||0.08;
+    src.connect(g); g.connect(c.destination); src.start();
+  }
+  return {
+    tap(){ tone(520, 0.06, "square", 0.06); },
+    pour(){ noise(0.4, 0.1); },
+    perfect(){ tone(660,0.1,"sine",0.12); tone(880,0.14,"sine",0.12,0.09); },
+    good(){ tone(520,0.12,"sine",0.1); },
+    meh(){ tone(330,0.14,"sine",0.1); },
+    fail(){ tone(220,0.35,"sawtooth",0.12,0,90); noise(0.25,0.1); },
+    serve(){ tone(880,0.09,"triangle",0.14); tone(1174,0.12,"triangle",0.1,0.07); },
+    coin(){ tone(988,0.07,"square",0.07); tone(1319,0.1,"square",0.07,0.06); },
+    event(){ tone(494,0.2,"triangle",0.1); tone(494,0.2,"triangle",0.08,0.22); },
+    ring(){ for(let i=0;i<3;i++){ tone(1046,0.09,"square",0.08,i*0.12); tone(784,0.09,"square",0.08,i*0.12+0.06);} },
+    leave(){ tone(300,0.2,"sine",0.08,0,180); },
+  };
+})();
+
+/* =====================================================================
+   UI 基础
+   ===================================================================== */
+const $ = s=>document.querySelector(s);
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+function toast(msg, kind){
+  if(HEADLESS) return;
+  const w = $("#toast-wrap");
+  const t = el("div","toast"+(kind?" "+kind:""), msg);
+  w.appendChild(t);
+  setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .3s"; }, 1400);
+  setTimeout(()=>t.remove(), 1800);
+}
+let modalPauseCb = null;
+function modal(head, bodyHtml, btns, stamp){
+  if(HEADLESS) return;
+  const box = $("#modal-box");
+  box.innerHTML = "";
+  const h = el("div","modal-head", (stamp?`<span class="stamp">${stamp}</span>`:"")+head);
+  const b = el("div","modal-body", bodyHtml);
+  const bt = el("div","modal-btns");
+  (btns||[]).forEach(o=>{
+    const btn = el("button","btn"+(o.primary?" primary":""), o.name);
+    btn.onclick = ()=>{ closeModal(); o.fn && o.fn(); };
+    bt.appendChild(btn);
+  });
+  box.appendChild(h); box.appendChild(b); box.appendChild(bt);
+  $("#modal").classList.remove("hidden");
+  if(R && R.running){ R.paused = true; modalPauseCb = ()=>{ R.paused = false; }; }
+}
+function closeModal(){
+  $("#modal").classList.add("hidden");
+  if(modalPauseCb){ modalPauseCb(); modalPauseCb = null; }
+}
+
+/* 常客 SVG 直接复用；散客生成头像 */
+function portraitAvatar(seed, kind=0){
+ const rng=makeRng(seed),pick=a=>a[Math.floor(rng()*a.length)];
+ const skin=pick(['#edc5a4','#dbad89','#c79270']),coat=pick(['#547c79','#b85f4b','#526b8c','#9b8054','#8d6d88']);
+ const hair=kind===1?'#b9b3a4':pick(['#44352e','#644939','#302e32']);
+ const bg=pick(['#e8e5d5','#e7dfd6','#dfe8e3','#e7dfeb']);
+ const style=kind||1+Math.floor(rng()*4);
+ const hairPath=style===3?`<path d="M22 30Q25 10 42 13Q58 15 59 34L53 40 50 26Q34 36 25 30Z" fill="${hair}"/><circle cx="56" cy="22" r="9" fill="${hair}"/>`:style===4?`<path d="M21 29Q40 5 60 28L58 33H22Z" fill="${coat}"/><path d="M21 29H61" stroke="#e7c99b" stroke-width="4"/>`:`<path d="M23 34Q17 12 39 11Q61 10 58 35L53 29 51 21Q38 33 26 27Z" fill="${hair}"/>`;
+ return `<svg viewBox="0 0 80 80" role="img" aria-label="顾客头像"><circle cx="40" cy="40" r="40" fill="${bg}"/><circle cx="63" cy="13" r="17" fill="#fff" opacity=".25"/><path d="M12 80Q15 53 32 53H48Q67 55 69 80" fill="${coat}"/><path d="M33 51V58Q40 65 47 58V51" fill="${skin}"/><path d="M28 57L39 66 31 72 24 59M51 57L40 66 49 72 57 60" fill="#f6efe0"/><path d="M40 66V80" stroke="#fff" opacity=".35"/><ellipse cx="40" cy="34" rx="18" ry="21" fill="${skin}"/><ellipse cx="22" cy="37" rx="3" ry="5" fill="${skin}"/><ellipse cx="58" cy="37" rx="3" ry="5" fill="${skin}"/>${hairPath}<path d="M28 34Q32 31 35 34M45 34Q49 31 52 34" fill="none" stroke="${hair}" stroke-width="1.5" stroke-linecap="round"/><ellipse cx="32" cy="38" rx="1.6" ry="2.1" fill="#382b27"/><ellipse cx="48" cy="38" rx="1.6" ry="2.1" fill="#382b27"/><path d="M39 39L37 45H41" fill="none" stroke="#b77c61" stroke-width="1.2"/><ellipse cx="28" cy="44" rx="4" ry="2.4" fill="#ca7d6b" opacity=".35"/><ellipse cx="52" cy="44" rx="4" ry="2.4" fill="#ca7d6b" opacity=".35"/><path d="M34 49Q40 54 46 49" fill="none" stroke="#9d5649" stroke-width="1.8" stroke-linecap="round"/>${style===2?'<g fill="none" stroke="#62594e" stroke-width="1.4"><rect x="25" y="33" width="12" height="10" rx="3"/><rect x="43" y="33" width="12" height="10" rx="3"/><path d="M37 36H43"/></g>':''}</svg>`;
+}
+function genericAvatar(rng,name){let n=0;for(const c of name)n=(n*31+c.charCodeAt(0))>>>0;return portraitAvatar(n);}
+function regularAvatar(reg){return portraitAvatar(111+REGULARS.indexOf(reg)*853,REGULARS.indexOf(reg)+1);}
+function ingredientIcon(id){
+ const shapes={
+ suan:'<path d="M15 8Q5 19 12 25Q20 29 25 22Q29 16 15 8Z" fill="#f0ddaf"/><path d="M16 12L16 22" stroke="#b39462"/><path d="M19 6Q24 2 27 6" stroke="#70926b" fill="none"/>',
+ jy:'<rect x="12" y="5" width="10" height="5" rx="2" fill="#b65b41"/><path d="M12 10H22L25 27H9Z" fill="#704431"/><path d="M12 16H22V23H12Z" fill="#edd3a1"/>',
+ yl:'<path d="M9 20Q17 23 25 9Q28 24 17 26Q11 28 9 20" fill="#c34d35"/><path d="M24 10Q22 4 28 5" stroke="#60805b" stroke-width="2" fill="none"/>',
+ hj:'<g fill="#8b5d43"><circle cx="12" cy="14" r="4"/><circle cx="21" cy="13" r="4"/><circle cx="16" cy="22" r="4"/></g><path d="M15 11L20 5M20 9L25 8" stroke="#6e8255" stroke-width="2"/>',
+ ch:'<g fill="none" stroke="#65854e" stroke-width="4"><ellipse cx="11" cy="13" rx="4" ry="3"/><ellipse cx="22" cy="12" rx="4" ry="3"/><ellipse cx="16" cy="23" rx="4" ry="3"/></g>',
+ dan:'<path d="M6 18Q7 7 17 6Q28 7 28 18Q27 28 16 28Q5 27 6 18Z" fill="#f7ead0" stroke="#d4ba8b"/><circle cx="17" cy="17" r="6" fill="#e6ad3b"/>',
+ qing:'<path d="M16 27Q1 18 8 7Q19 9 16 27M17 26Q17 6 28 7Q31 21 17 26" fill="#60834f"/><path d="M16 29L13 16M17 27L24 13" fill="none" stroke="#c8d4a0" stroke-width="2"/>'};
+ return `<svg viewBox="0 0 34 34" aria-hidden="true">${shapes[id]||'<path d="M7 11H27L24 27H10Z" fill="#a47c56"/><path d="M8 11Q17 3 26 11" fill="#d8b68c"/>'}</svg>`;
+}
+
+/* =====================================================================
+   SERVICE —— 实时循环
+   ===================================================================== */
+function newDayRuntime(dayNum, params){
+  const rng = makeRng(G.seed + dayNum*7919);
+  const cookTime = (G.upgrades.pot ? BALANCE.noodleFast : BALANCE.noodleTime) + (params.sick?0.4:0);
+  const runtime = {
+    dayNum, params, rng,
+    t: 0, running: true, paused: false, over:false,
+    toSpawn: customersOfDays(G, dayNum, params.spawnMul, params.spawnAdd),
+    spawned: 0, spawnedTotal: 0,
+    nextSpawn: 1.2,
+    customers: [],           // {order,patience,patienceMax,seatIdx,state,isPhone,isRegular}
+    burners: [],             // {state:'idle'|'cooking', t, order, customer, el}
+    prepQueue: [],           // 完成煮面待调味
+    prep: null,              // {order, step, wrong, noodleQ, custRef}
+    phone: null,             // {order, state:'ringing'|'accepted', t}
+    phoneCd: 8,
+    served: 0, lost: 0, ruined: 0, revenue: 0, soda: 0,
+    combo: 0, dayFlavor: null, sick: !!params.sick,
+    noodleWindow: (G.niangSoup?0.45:BALANCE.perfect),
+    goodWindow: (G.niangSoup?0.95:BALANCE.good),
+    cookTime,
+    blackoutT: 0, blackoutDone: false,
+  };
+  for(let i=0;i<burnerCount();i++) runtime.burners.push({state:"idle", t:0, order:null, customer:null, el:null});
+  runtime.spawnedTotal = runtime.toSpawn;
+  return runtime;
+}
+
+function burnerCount(){ return 1 + (G.upgrades.burner2?1:0) + (G.upgrades.burner3?1:0); }
+
+function startDay(){
+  const dayNum = G.day;
+  const pd = PENDING_DAY || pickDayEvents();
+  const weather = pd.weather;
+  const applies = pd.list.filter(e=>e.event.apply).map(e=>e.event.apply);
+  const params = dayParams(G, dayNum, weather, applies);
+  if(DAYC.daySick){ params.sick = true; }
+  R = newDayRuntime(dayNum, params);
+  R.dueRegular = pd.regular || null;
+  R.regularOk = false;
+  renderSeats(); renderBurners(); renderPalette(); renderPrep(); renderHUD(); renderPhoneSlot();
+  showScreen("game");
+  const wtxt = weather==="rain" ? "今天有雨。" : (params.hot?"日头毒。":"天晴。");
+  toast(`第 ${dayNum} 天开张 —— ${wtxt}`, "");
+  AUDIO.pour();
+}
+
+function pickDayEvents(){
+  const rng = makeRng(G.seed + G.day*104729);
+  const list = [];
+  let weather = null;
+  if(rng()<0.22){ weather = "rain"; }
+  EVENTS.forEach(ev=>{
+    if(ev.day[0] > G.day || G.day > ev.day[1]) return;
+    if(ev.once && G.flags["ev_"+ev.id]) return;
+    if(ev.cond && !ev.cond({G, rng})) return;
+    /* 进日简报（应用参数/出选择） */
+    if(rng() < Math.min(0.9, ev.w/10)){
+      list.push({event:ev});
+      G.flags["ev_"+ev.id] = true;
+      if(ev.id==="chain") G.chainHappened = true;
+    }
+  });
+  return { weather, list };
+}
+
+/* ---------- 日简报：天气 + 事件 + choices（当日只算一次） ---------- */
+let PENDING_DAY = null;
+let DAYC = {};   // 当日由玩家选择产生的状态
+
+function showDayBrief(){
+  PENDING_DAY = pickDayEvents();
+  DAYC = {};
+  const { weather, list } = PENDING_DAY;
+  /* 今天该来的常客（剧情日到期且线没走完） */
+  const dueReg = REGULARS.find(r=> G.regulars[r.id]<3 && G.day >= r.scenes[G.regulars[r.id]].day);
+  PENDING_DAY.regular = dueReg ? dueReg.id : null;
+  const evHtml = list.filter(x=>x.event.text).map(x=>`<p>${x.event.text}</p>`).join("");
+  const hasChoices = list.some(x=>x.event.choices);
+  const dayNum = G.day;
+  const remainDebt = BALANCE.debt - G.debtPaid;
+  const mile = BALANCE.milestoneDays.includes(dayNum) ? dayNum : null;
+  let brief = `<p><b>第 ${dayNum} 天</b> · 清晨五点半。</p>
+    <p>兜里 <b>¥${Math.round(G.money)}</b> · 欠款还剩 <b>¥${remainDebt}</b>。</p>
+    ${evHtml}`;
+  if(dueReg){
+    const o = dueReg.order;
+    brief += `<p style="color:var(--goldt)">今天 <b>${dueReg.name}</b> 要来吃一碗 <b>${DISHES[o.dishId].name}·${SPICE_NAMES[o.spice]}</b>。这碗做到合格以上，情分才算是处下了。</p>`;
+  }
+  if(mile) brief += `<p style="color:var(--chili)">今天是要还钱的日子：累计还款要够 <b>¥${BALANCE.milestones[mile] + G.interest}</b>。</p>`;
+  if(hasChoices){
+    showDayBriefChoices(list.filter(x=>x.event.choices), ()=>{ openBriefModal(brief, dayNum); });
+  } else {
+    openBriefModal(brief, dayNum);
+  }
+}
+function showDayBriefChoices(items, done){
+  if(!items.length){ done(); return; }
+  const it = items.shift();
+  const ev = it.event;
+  const ctx = { G, rng: makeRng(G.seed+G.day*31), dayFlavor:null };
+  modal(ev.name, `<p>${ev.text}</p>`,
+    ev.choices.map(c=>({ name:c.name, primary:c.cost!=null, fn:()=>{
+      if(c.cost){ G.money -= c.cost; }
+      c.fn(ctx);
+      if(ctx.dayFlavor) R_dayFlavor = ctx.dayFlavor;
+      if(ctx.daySick) DAYC.daySick = true;
+      if(ctx.chainSoft){ G.chainSoft = true; }
+      saveGame();
+      showDayBriefChoices(items, done);
+    }})), "今日");
+}
+let R_dayFlavor = null;
+
+function openBriefModal(briefHtml, dayNum){
+  const btns = [{ name:"开火 —— 开始营业", primary:true, fn:()=>{ startDay(); } }];
+  modal(`第 ${dayNum} 天 · 简报`, briefHtml, btns, "山城清晨");
+}
+
+/* ---------- 渲染 ---------- */
+function showScreen(name){
+  ["title","game","ending"].forEach(s=>{
+    $("#scr-"+s).classList.toggle("hidden", s!==name);
+  });
+}
+function renderHUD(){
+  if(!G) return;
+  $("#hud-day-k").textContent = "第"+G.day+"天";
+  $("#hud-day").textContent = R && R.running ? fmtClock(R.t) : "";
+  $("#hud-money").textContent = "¥"+Math.round(G.money);
+  $("#hud-rep").textContent = Math.round(G.rep);
+  $("#hud-debt").textContent = "¥"+(BALANCE.debt-G.debtPaid);
+}
+function fmtClock(t){
+  const min = 330 + Math.floor(t/ (R && R.dayLength? R.dayLength : 240) * 120);
+  return `${Math.floor(min/60)}:${String(min%60).padStart(2,"0")}`;
+}
+function renderSeats(){
+  const wrap = $("#seats"); wrap.innerHTML = "";
+  for(let i=0;i<BALANCE.seats;i++){
+    const seat = el("div","seat");
+    seat.dataset.i = i;
+    seat.innerHTML = `<div class="ava"></div><div class="cname"></div>
+      <div class="order-bubble" style="display:none"></div>
+      <div class="seat-state"></div>
+      <div class="patience-wrap" style="visibility:hidden"><div class="patience-bar" style="width:100%"></div></div>`;
+    seat.onclick = ()=>{ onSeatClick(i); };
+    wrap.appendChild(seat);
+  }
+}
+function seatAt(i){ return $("#seats").children[i]; }
+
+function renderBurners(){
+  const wrap = $("#burners"); wrap.innerHTML = "";
+  const n = burnerCount();
+  for(let i=0;i<n;i++){
+    const b = el("div","burner idle");
+    b.innerHTML = `<span class="bname"></span><span class="bhint"></span><span class="blabel">空灶</span><div class="cook-track"><div class="cook-fill"></div></div>`;
+    b.dataset.i = i;
+    b.onclick = ()=>{ onBurnerClick(i); };
+    wrap.appendChild(b);
+  }
+}
+function renderPalette(){
+  const grid = $("#palette-grid"); grid.innerHTML = "";
+  const menu = unlockedMenu(G);
+  const ids = new Set(["yl","suan","jy","hj","ch","dan","qing"]);
+  menu.forEach(id=>DISHES[id].base.forEach(t=>ids.add(t)));
+  /* 常客点单的菜，即便没上架也得备料 */
+  if(R && R.dueRegular){
+    const reg = REGULARS.find(r=>r.id===R.dueRegular);
+    if(reg) DISHES[reg.order.dishId].base.forEach(t=>ids.add(t));
+  }
+  const ordered=Object.keys(TOPPINGS).filter(id=>ids.has(id));
+  const shuffle=makeRng(G.seed+G.day*37199);
+  for(let i=ordered.length-1;i>0;i--){const j=Math.floor(shuffle()*(i+1));[ordered[i],ordered[j]]=[ordered[j],ordered[i]];}
+  ordered.forEach(id=>{
+    if(!ids.has(id)) return;
+    const b = el("button","ing", ingredientIcon(id)+`<span>${TOPPINGS[id]}</span>`); b.dataset.ingredient=id; b.setAttribute("aria-label",TOPPINGS[id]);
+    b.onclick = ()=>{ onIngredient(id, b); };
+    grid.appendChild(b);
+  });
+}
+function renderPrep(){
+  const p = $("#prep");
+  if(!R || (!R.prep && !R.prepQueue.length)){
+    p.className = "empty";
+    p.innerHTML = "调味台空着 —— 捞一碗面过来";
+    return;
+  }
+  p.className = "";
+  const cur = R.prep;
+  const queued = R.prepQueue.length ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">还有 ${R.prepQueue.length} 碗排队</div>` : "";
+  if(!cur){
+    p.innerHTML = `<div class="prep-head">待调味</div>${queued}`;
+    return;
+  }
+  const chips = cur.order.recipe.map((t,i)=>{
+    const cls = i<cur.step ? "chip done" : (i===cur.step ? "chip next" : "chip");
+    return `<span class="${cls}">${TOPPINGS[t]}</span>`;
+  }).join("");
+  const memoHint = G.upgrades.memo ? "" : "";
+  p.innerHTML = `<div class="prep-head">${cur.order.label}<span class="tag">· ${cur.order.custName}</span></div>
+    <div class="recipe-chips">${chips}<span class="chip result" id="prep-q">品质 --</span></div>${queued}`;
+}
+function renderPhoneSlot(){
+  $("#phone-slot").innerHTML = "";
+  if(R && R.phone){
+    const ph = R.phone;
+    const div = el("div","phone-order");
+    if(ph.state==="ringing"){
+      div.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a8843c" stroke-width="2"><path d="M4 5c0 8 7 15 15 15l2-4-4-2-2 2c-3-1-6-4-7-7l2-2-2-4z"/></svg> 外卖电话响了！接单？`;
+      const btn = el("button","si-buy","接"); btn.style.padding="5px 12px";
+      btn.onclick = ()=>{ acceptPhone(); };
+      div.appendChild(btn);
+    } else {
+      const left = Math.max(0, BALANCE.phoneTime - ph.t);
+      div.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a8843c" stroke-width="2"><path d="M4 5c0 8 7 15 15 15l2-4-4-2-2 2c-3-1-6-4-7-7l2-2-2-4z"/></svg> 外卖单：${ph.order.label} <span style="color:var(--bad)">${left.toFixed(0)}s</span>`;
+    }
+    $("#phone-slot").appendChild(div);
+  }
+}
+
+/* ---------- 交互 ---------- */
+function onSeatClick(i){
+  if(!R || !R.running || R.paused) return;
+  const c = R.customers.find(x=>x.seatIdx===i && x.state==="waiting-cook");
+  if(!c) return;
+  const bi = R.burners.findIndex(b=>b.state==="idle");
+  if(bi<0){ toast("灶眼满了，先捞一碗", "bad"); return; }
+  if(R.blackoutT>0){ toast("没电，灶点不着", "bad"); return; }
+  const b = R.burners[bi];
+  b.state = "cooking"; b.t = 0; b.order = c.order; b.customer = c;
+  c.state = "cooking";
+  AUDIO.pour();
+  updateSeat(c); updateBurner(bi);
+}
+function onBurnerClick(i){
+  if(!R || !R.running || R.paused) return;
+  const b = R.burners[i];
+  if(!b || b.state!=="cooking") return;
+  const diff = b.t - R.cookTime;
+  let res;
+  const pw = R.noodleWindow, gw = R.goodWindow;
+  if(Math.abs(diff) <= pw) res = "perfect";
+  else if(diff < 0 && Math.abs(diff) <= gw) res = "raw";
+  else if(diff > 0 && diff <= gw) res = "ok";
+  else if(diff < 0) res = "raw";
+  else res = "ok";
+  /* 收碗进调味队列（先取引用再清理灶眼） */
+  const doneOrder = b.order, doneCust = b.customer;
+  b.state = "idle"; b.order = null; b.customer = null;
+  b.el.classList.remove("cooking","done","trashed");
+  b.el.classList.add("idle"); b.el.querySelector(".bname").textContent="";
+  b.el.querySelector(".bhint").textContent="";
+  b.el.querySelector(".cook-fill").style.width="0";
+  const zone = b.el.querySelector(".cook-zone"); if(zone) zone.remove();
+  if(res==="raw"){
+    /* 夹生：面废了，客人还在等 */
+    R.ruined++; R.combo = 0;
+    toast("夹生了！重新煮", "bad"); AUDIO.fail();
+    doneCust.state = "waiting-cook";
+    updateSeat(doneCust);
+    return;
+  }
+  R.prepQueue.push({ order:doneOrder, noodleQ: res==="perfect" ? 100 : BALANCE.noodleBase.ok, custRef:doneCust });
+  doneCust.state = "prep";
+  AUDIO.tap();
+  pumpPrep();
+  renderPrep();
+}
+function onIngredient(id, btn){
+  if(!R || !R.running || R.paused) return;
+  if(!R.prep) { toast("调味台上没有面", ""); return; }
+  const cur = R.prep;
+  const need = cur.order.recipe[cur.step];
+  if(id === need){
+    cur.step++;
+    AUDIO.tap();
+    if(cur.step >= cur.order.recipe.length){ finishPrep(); return; }
+    renderPrep();
+    if(G.upgrades.memo) hintNext();
+  } else {
+    cur.wrong++;
+    AUDIO.fail();
+    if(btn){ btn.classList.add("err"); setTimeout(()=>btn.classList.remove("err"),220); }
+    toast("放错了——"+TOPPINGS[need], "bad");
+    renderPrep();
+  }
+}
+function hintNext(){
+  document.querySelectorAll(".ing").forEach(b=>b.classList.remove("hint"));
+  if(R && R.prep){
+    const need = R.prep.order.recipe[R.prep.step];
+    document.querySelectorAll(".ing").forEach(b=>{
+      if(b.textContent === TOPPINGS[need]) b.classList.add("hint");
+    });
+  }
+}
+function pumpPrep(){
+  if(R.prep) return;
+  const next = R.prepQueue.shift();
+  if(!next) return;
+  R.prep = { order:next.order, step:0, wrong:0, noodleQ:next.noodleQ, custRef:next.custRef };
+  renderPrep();
+  if(G.upgrades.memo) hintNext();
+}
+function finishPrep(){
+  const cur = R.prep;
+  R.prep = null;
+  const q = computeQuality(cur.noodleQ >= 100 ? "perfect" : (cur.noodleQ>=78?"ok":"raw"), cur.wrong);
+  const tier = qualityTier(q);
+  serve(cur.custRef, cur.order, tier);
+  pumpPrep();
+  renderPrep();
+}
+function serve(cust, order, tier){
+  cust.state = "served";
+  AUDIO.serve();
+  if(cust.isPhone && R.phone){ R.phone = null; renderPhoneSlot(); }
+  if(tier==="ruined"){
+    R.ruined++; R.combo = 0; G.totalRuined++;
+    if(cust.isRegular) R.regularOk = false;
+    G.rep = Math.max(0, G.rep + repDelta("ruined"));
+    toast(`${order.custName}：这碗没法吃……`, "bad");
+  } else {
+    if(cust.isRegular && (tier==="perfect"||tier==="ok")) R.regularOk = true;
+    const pay = payOf(order, tier, R.combo);
+    R.combo++;
+    R.comboBest = Math.max(R.comboBest||0, R.combo);
+    G.bestCombo = Math.max(G.bestCombo||0, R.combo);
+    let sodaP = BALANCE.sodaChance * (R.params.hot?2.2:1);
+    let sodaPay = 0;
+    if(G.upgrades.fridge && Math.random()<sodaP){ sodaPay = R.params.hot? BALANCE.sodaPriceHot : BALANCE.sodaPrice; R.soda++; }
+    R.revenue += pay + sodaPay;
+    R.served++; G.totalServed++;
+    G.rep = Math.min(100, G.rep + repDelta(tier));
+    const tags = { perfect:"完美！", ok:"不错", meh:"将就" };
+    toast(`${order.custName} ${tags[tier]} +¥${pay+sodaPay}${sodaPay?"（含汽水）":""}`, tier==="perfect"?"good":(tier==="meh"?"":""));
+    if(tier==="perfect") AUDIO.perfect(); else if(tier==="ok") AUDIO.coin(); else AUDIO.meh();
+  }
+  removeCustomer(cust);
+  renderHUD(); updateFoot();
+}
+function removeCustomer(cust){
+  const idx = R.customers.indexOf(cust);
+  if(idx>=0) R.customers.splice(idx,1);
+  const seat = seatAt(cust.seatIdx);
+  if(seat){
+    seat.className = "seat";
+    seat.querySelector(".ava").innerHTML = "";
+    seat.querySelector(".cname").textContent = "";
+    seat.querySelector(".order-bubble").style.display = "none";
+    seat.querySelector(".seat-state").textContent = "";
+    seat.querySelector(".patience-wrap").style.visibility = "hidden";
+  }
+}
+function customerLeaves(cust, why){
+  R.lost++; R.combo = 0;
+  if(cust.isRegular) R.regularOk = false;
+  G.rep = Math.max(0, G.rep + repDelta("timeout"));
+  AUDIO.leave();
+  toast(`${cust.order.custName} 等不及走了`, "bad");
+  removeCustomer(cust);
+  renderHUD(); updateFoot();
+}
+function acceptPhone(){
+  if(!R || !R.phone || R.phone.state!=="ringing") return;
+  R.phone.state = "accepted"; R.phone.t = 0;
+  const c = { order:R.phone.order, patience:BALANCE.phoneTime, patienceMax:BALANCE.phoneTime, seatIdx:-1, state:"waiting-cook", isPhone:true };
+  R.customers.push(c);
+  AUDIO.tap();
+  renderPhoneSlot();
+  toast("外卖单接了 —— 马上下锅", "");
+}
+function updateFoot(){
+  $("#served-tag").textContent = `${R.served} 碗`;
+  $("#combo-tag").textContent = R.combo>1 ? `连击 ×${R.combo}` : "";
+  const total = R.spawnedTotal || 1;
+  $("#day-progress .fill").style.width = Math.min(100, (R.served+R.lost+R.ruined)/total*100)+"%";
+}
+function updateSeat(c){
+  const seat = seatAt(c.seatIdx);
+  if(!seat) return;
+  seat.className = "seat occupied" + (c.state==="waiting-cook" ? " clickable" : "");
+  if(c.state==="waiting-cook"){
+    seat.querySelector(".seat-state").textContent = "点一下 → 下锅";
+  } else if(c.state==="cooking"){ seat.querySelector(".seat-state").textContent = "煮着了"; }
+  else if(c.state==="prep"){ seat.querySelector(".seat-state").textContent = "调味中"; }
+}
+function spawnCustomer(isPhone){
+  /* 常客剧情日：当天第一位客人就是他 */
+  let reg = null;
+  if(!isPhone && R.dueRegular && R.spawned===0){
+    reg = REGULARS.find(r=>r.id===R.dueRegular);
+  }
+  const order = makeOrder(G, R.rng, R.params, reg ? Object.assign({name:reg.name}, reg.order) : null);
+  if(isPhone){
+    R.phone = { order, state:"ringing", t:0 };
+    AUDIO.ring();
+    renderPhoneSlot();
+    return;
+  }
+  const free = [];
+  for(let i=0;i<BALANCE.seats;i++){ if(!R.customers.some(c=>c.seatIdx===i)) free.push(i); }
+  if(!free.length) return false;
+  const seatIdx = free[0];
+  const patMax = BALANCE.patience * (G.upgrades.stool?1.2:1) * R.params.patienceMul;
+  const c = { order, patience:patMax, patienceMax:patMax, seatIdx, state:"waiting-cook" };
+  R.customers.push(c);
+  const seat = seatAt(seatIdx);
+  const av = seat.querySelector(".ava");
+  if(reg){
+    c.isRegular = reg.id;
+    av.innerHTML = regularAvatar(reg);
+    c.patience = c.patienceMax = patMax * 1.5;   // 熟人愿意多等一会
+  }
+  else av.innerHTML = genericAvatar(R.rng);
+  seat.querySelector(".cname").textContent = c.order.custName;
+  const bub = seat.querySelector(".order-bubble");
+  bub.style.display = "";
+  bub.innerHTML = `${c.order.label}`;
+  const pw = seat.querySelector(".patience-wrap"); pw.style.visibility = "";
+  seat.classList.add("occupied","clickable");
+  updateSeat(c);
+  return true;
+}
+function updateBurner(i){
+  const b = R.burners[i];
+  const elx = b.el || $("#burners").children[i];
+  b.el = elx;
+  if(!elx) return;
+  if(b.state==="idle" && elx.classList.contains("idle")) return;
+  const zoneW = (R.noodleWindow*2/R.cookTime*100);
+  let zone = elx.querySelector(".cook-zone");
+  if(b.state==="cooking"){
+    elx.className = "burner cooking";
+    elx.querySelector(".bname").textContent = b.order.dishName;
+    elx.querySelector(".bhint").textContent = "到绿区点一下";
+    if(!zone){ zone = el("div","cook-zone"); elx.querySelector(".cook-track").appendChild(zone); }
+    /* 绿区覆盖 [1-pw, 1+pw] */
+    zone.style.left = Math.max(0,(1 - R.noodleWindow/R.cookTime)*100)+"%";
+    zone.style.width = zoneW+"%";
+    const p = Math.min(100, b.t/R.cookTime*100);
+    elx.querySelector(".cook-fill").style.width = p+"%";
+  }
+}
+function tick(dt){
+  if(!R || !R.running || R.paused) return;
+  if(R.blackoutT>0){ R.blackoutT -= dt; }
+  if(R.params.blackout && !R.blackoutDone && R.t>100){
+    R.blackoutDone = true; R.blackoutT = 6;
+    toast("跳闸了！几秒钟点不着火", "bad"); AUDIO.fail();
+  }
+  R.t += dt;
+  /* 外卖单：灶眼一空就自动下锅 */
+  R.customers.forEach(c=>{
+    if(c.isPhone && c.state==="waiting-cook"){
+      const bi = R.burners.findIndex(b=>b.state==="idle");
+      if(bi>=0 && R.blackoutT<=0){
+        const b = R.burners[bi];
+        b.state="cooking"; b.t=0; b.order=c.order; b.customer=c;
+        c.state="cooking";
+        AUDIO.pour();
+      }
+    }
+  });
+  /* 生成客人 */
+  if(R.spawned < R.toSpawn){
+    R.nextSpawn -= dt;
+    if(R.nextSpawn <= 0){
+      const prog = Math.min(1, R.spawned/Math.max(1,R.toSpawn));
+      let gap = BALANCE.spawnGap.start + (BALANCE.spawnGap.end-BALANCE.spawnGap.start)*prog;
+      if(R.params.rushFront && R.spawned<5) gap *= 0.45;
+      gap /= Math.max(0.7, G.rep/60);
+      const ok1 = spawnCustomer(false);
+      if(ok1){
+        R.spawned++;
+        if(R.rng()<BALANCE.doubleSpawnP && R.spawned<R.toSpawn){
+          if(spawnCustomer(false)) R.spawned++;
+        }
+      }
+      R.nextSpawn = gap * (0.8 + R.rng()*0.5);
+      R.spawnedTotal = R.toSpawn;
+    }
+  }
+  /* 外卖 */
+  if(G.upgrades.phone){
+    if(R.phone && R.phone.state==="ringing"){
+      R.phone.t += dt;
+      if(R.phone.t > BALANCE.phoneRingTime){
+        R.phone = null; renderPhoneSlot();
+        toast("电话没人接，单跑了", "bad");
+      }
+    } else if(!R.phone){
+      R.phoneCd -= dt;
+      if(R.phoneCd<=0){
+        const p = BALANCE.phoneP * (R.params.phoneMul||1);
+        if(R.rng()<p && R.spawned < R.toSpawn){ spawnCustomer(true); }
+        R.phoneCd = 14 + R.rng()*10;
+      }
+    }
+    if(R.phone && R.phone.state==="accepted"){
+      R.phone.t += dt;
+      if(R.phone.t > BALANCE.phoneTime){
+        const c = R.customers.find(x=>x.isPhone && x.state!=="served");
+        if(c){ R.lost++; R.combo=0; G.rep=Math.max(0,G.rep-1.5); toast("外卖超时了","bad"); removeCustomer(c); }
+        R.phone = null; renderPhoneSlot();
+      } else renderPhoneSlot();
+    }
+  }
+  /* 客人耐心 */
+  R.customers.slice().forEach(c=>{
+    if(c.isPhone || c.state==="served") return;
+    c.patience -= dt;
+    const seat = seatAt(c.seatIdx);
+    if(seat){
+      const pct = Math.max(0, c.patience/c.patienceMax);
+      const bar = seat.querySelector(".patience-bar");
+      bar.style.width = pct*100+"%";
+      bar.className = "patience-bar"+(pct<0.25?" low":(pct<0.55?" mid":""));
+    }
+    if(c.patience<=0) customerLeaves(c, "timeout");
+  });
+  /* 灶台 */
+  R.burners.forEach((b,i)=>{
+    if(b.state!=="cooking") return;
+    b.t += dt;
+    if(R.blackoutT>0){ /* 停电：火灭，计时冻住 */ }
+    if(b.t > R.cookTime + R.goodWindow + BALANCE.soggy){
+      /* 坩了 */
+      b.state="idle"; b.order=null;
+      const elx = $("#burners").children[i];
+      elx.classList.add("trashed");
+      setTimeout(()=>elx.classList.remove("trashed"),350);
+      elx.className = "burner idle"; elx.querySelector(".bname").textContent=""; elx.querySelector(".bhint").textContent="";
+      elx.querySelector(".cook-fill").style.width="0";
+      const z=elx.querySelector(".cook-zone"); if(z) z.remove();
+      const cust = b.customer;
+      if(cust && cust.state==="cooking"){ cust.state="waiting-cook"; updateSeat(cust); }
+      b.customer=null;
+      R.ruined++; R.combo=0; G.totalRuined++;
+      toast("面坨在锅里了！", "bad"); AUDIO.fail();
+      return;
+    }
+    updateBurner(i);
+  });
+  renderHUD();
+  updateFoot();
+  /* 收摊判定 */
+  const fieldEmpty = R.spawned>=R.toSpawn && R.customers.length===0 && R.prepQueue.length===0 && !R.prep && !R.burners.some(b=>b.state==="cooking") && !(R.phone&&R.phone.state==="ringing");
+  const timeUp = R.t > 240;
+  if((fieldEmpty && R.spawned>0) || (timeUp && R.customers.length===0 && !R.prep)){
+    endDay();
+  }
+}
+
+/* ---------- 日结 ---------- */
+function endDay(){
+  R.running = false; R.over = true;
+  const bowls = R.served;
+  const spiceAvg = BALANCE.spiceCost[1]*R.params.spiceMul*(G.zhouDiscount||G.niangDiscount?0.8:1);
+  const cost = dayCost(bowls, spiceAvg/ BALANCE.spiceCost[1], G);
+  const profit = Math.round(R.revenue - cost);
+  G.money += profit;
+  G.dayLog.push({ day:G.day, revenue:R.revenue, cost, profit, served:R.served, lost:R.lost, ruined:R.ruined });
+  /* 常客剧情：这碗面做到位了，故事才算发生 */
+  let regularHtml = "";
+  if(R.dueRegular){
+    const reg = REGULARS.find(r=>r.id===R.dueRegular);
+    if(R.regularOk){
+      const scene = reg.scenes[G.regulars[reg.id]];
+      G.regulars[reg.id]++;
+      if(scene.fn) scene.fn({G});
+      regularHtml = `<div class="figure">${reg.svg}</div><p><b>${reg.name}</b>：${scene.text}</p><p style="color:var(--goldt)">${scene.gain||""}</p>`;
+    } else {
+      regularHtml = `<p>${reg.name}的这碗面没做到位。他的事，只有改天再说了。</p>`;
+    }
+  }
+  /* 里程碑检查 */
+  const mileToday = BALANCE.milestoneDays.includes(G.day);
+  let mileFail = false;
+  if(mileToday){
+    const target = BALANCE.milestones[G.day] + G.interest;
+    if(G.money - BALANCE.payFloor >= target - G.debtPaid){
+      const pay = target - G.debtPaid;
+      G.money -= pay; G.debtPaid += pay;
+    } else {
+      mileFail = true; G.missedMilestones++; G.interest += BALANCE.interestMiss;
+    }
+  }
+  saveGame();
+  showSettle({ profit, cost, mileToday, mileFail, regularHtml });
+}
+function showSettle(res){
+  const last = G.day >= BALANCE.days;
+  const tbl = `<table class="settle-table">
+    <tr><td>卖面收入</td><td>+¥${Math.round(R.revenue)}</td></tr>
+    ${G.upgrades.fridge&&R.soda?`<tr><td>汽水</td><td>含在收入里（${R.soda}瓶）</td></tr>`:""}
+    <tr><td>房租水电</td><td>-¥${res.cost}</td></tr>
+    <tr><td>跑了 / 砸了</td><td>${R.lost} / ${R.ruined}</td></tr>
+    <tr class="total"><td>今日净利</td><td>${res.profit>=0?"+":""}¥${res.profit}</td></tr>
+    <tr><td>口碑</td><td>${Math.round(G.rep)}</td></tr>
+    <tr><td>欠款余额</td><td>¥${BALANCE.debt-G.debtPaid}</td></tr>
+  </table>
+  ${res.mileFail?`<p style="color:var(--bad)">还款没凑够，债主撂下狠话。利息 +¥${BALANCE.interestMiss}。</p>`:""}
+  ${res.mileToday&&!res.mileFail?`<p style="color:var(--good)">还款到位。外婆在病床上听说，笑了。</p>`:""}
+  ${res.regularHtml||""}
+  ${R_dayFlavor?`<p>${R_dayFlavor}</p>`:""}
+  ${last?`<p><b>三十天，到日子了。</b></p>`:""}`;
+  R_dayFlavor = null;
+  const btns = last
+    ? [{ name:"结 局", primary:true, fn:()=>showEnding() }]
+    : [{ name:"去进物料 / 攒设备", primary:true, fn:()=>showShop() }];
+  modal(`第 ${G.day} 天 · 收摊`, tbl, btns, "日结");
+}
+function showShop(){
+  const box = $("#modal-box");
+  box.innerHTML = "";
+  const h = el("div","modal-head","添置 · 进货");
+  const b = el("div","modal-body");
+  const bt = el("div","modal-btns");
+  b.appendChild(el("p",null,`兜里 <b>¥${Math.round(G.money)}</b>。买下的东西明天见效。`));
+  /* 菜单解锁 */
+  MENU_ORDER.forEach(id=>{
+    if(id==="su" || G.upgrades["menu_"+id]) return;
+    const row = el("div","shop-item");
+    row.innerHTML = `<div class="si-info"><div class="si-name">上架 · ${DISHES[id].name}</div><div class="si-desc">卖 ¥${BALANCE.price[id]}，配方更复杂。</div></div>`;
+    const btn = el("button","si-buy","¥"+BALANCE.unlock[id]);
+    btn.disabled = G.money < BALANCE.unlock[id];
+    btn.onclick = ()=>{ G.money-=BALANCE.unlock[id]; G.upgrades["menu_"+id]=true; AUDIO.coin(); saveGame(); showShop(); };
+    row.appendChild(btn); b.appendChild(row);
+  });
+  UPGRADES.forEach(u=>{
+    if(G.upgrades[u.id]) return;
+    if(u.req && !G.upgrades[u.req]) return;
+    const row = el("div","shop-item");
+    row.innerHTML = `<div class="si-info"><div class="si-name">${u.name}</div><div class="si-desc">${u.desc}</div></div>`;
+    const btn = el("button","si-buy","¥"+u.cost);
+    btn.disabled = G.money < u.cost;
+    btn.onclick = ()=>{ G.money-=u.cost; G.upgrades[u.id]=true; AUDIO.coin(); saveGame(); showShop(); };
+    row.appendChild(btn); b.appendChild(row);
+  });
+  if(b.querySelectorAll(".shop-item").length===0) b.appendChild(el("p",null,"能添置的都置办齐了。"));
+  const nextBtn = el("button","btn primary",`天黑了 —— 睡觉（第 ${G.day+1} 天）`);
+  nextBtn.onclick = ()=>{ closeModal(); nextDay(); };
+  bt.appendChild(nextBtn);
+  box.appendChild(h); box.appendChild(b); box.appendChild(bt);
+  $("#modal").classList.remove("hidden");
+  if(R&&R.running){R.paused=true;modalPauseCb=()=>{R.paused=false;};}
+}
+function nextDay(){
+  G.day++;
+  saveGame();
+  if(G.day > BALANCE.days){ showEnding(); return; }
+  showDayBrief();
+}
+
+/* ---------- 结局 ---------- */
+const ENDINGS = {
+  transfer: { text:"灶膛的火熄了。你把「陈记小面」的牌子取下来，用报纸包好，放进外婆的柜子。债还没完，人先走了。巷子里的人说，那家面的汤底，其实一直差一口气。", tone:"bad" },
+  struggle: { text:"债还清了，钱也没剩下几个。你还是每天四点半起来吊汤，围裙上全是经年的油点。这不是什么了不起的生意，但巷口的老人说：「这家还在，就好。」", tone:"" },
+  community: { text:"街坊红白喜事，都来你这儿订面。老周在墙上钉了个挂钩，专门挂熟客的扁担。外婆出院那天，半条巷子的人来接。你说不清是面馆养活了你，还是巷子养活了面馆。", tone:"good" },
+  fifty: { text:"「小面五十强」的铜牌挂上门楣那天，陈记者来拍了张照片：你站在灶前，身后是排队的人。牌子上写「竹器巷 · 陈记」。你把它擦了又擦，摆在外婆的柜子旁边。", tone:"good" },
+  second: { text:"第二家店选在江对岸，开业那天老周扛来一挂鞭。你教徒弟吊汤，说的还是外婆那句：「汤宽，面才立得起。」牌子换了新的，灶火还是原来那一灶。", tone:"good" },
+  grandma: { text:"三十年前，外婆也是这样站在灶前。你把她的旧围裙洗得发白，系在腰上。今天老周、雷师傅、陈记者、老板娘都来了，一人一碗，谁也没说话。汤面上浮着葱花，热气把每个人的眼镜都熏白了。——这碗面的名字，叫外婆。", tone:"grandma" },
+};
+function showEnding(){
+  const e = endingCalc(G);
+  META.endings[e.id] = true;
+  META.bestMoney = Math.max(META.bestMoney, Math.round(G.money));
+  META.bestRep = Math.max(META.bestRep, Math.round(G.rep));
+  META.runs++;
+  saveMeta();
+  const tone = ENDINGS[e.id].tone;
+  const scr = $("#scr-ending");
+  scr.innerHTML = `
+    <div class="ending-title">${e.title}</div>
+    <div class="ending-grade">结局评定 · ${e.grade}</div>
+    <div class="ending-body">${ENDINGS[e.id].text}</div>
+    <div class="ending-stats">
+      <div><span>三十天总营业额</span><b>¥${G.dayLog.reduce((a,d)=>a+d.revenue,0)}</b></div>
+      <div><span>总出餐</span><b>${G.totalServed} 碗</b></div>
+      <div><span>最高连击</span><b>×${G.bestCombo||0}</b></div>
+      <div><span>最终口碑</span><b>${Math.round(G.rep)}</b></div>
+      <div><span>还清欠款</span><b>${G.debtPaid>=BALANCE.debt?"是（¥"+BALANCE.debt+"）":"否，还剩 ¥"+(BALANCE.debt-G.debtPaid)}</b></div>
+      <div><span>兜里余额</span><b>¥${Math.round(G.money)}</b></div>
+    </div>
+    <canvas id="poster-canvas" width="540" height="810"></canvas>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn primary" id="btn-again">再开一局</button>
+      <button class="btn" id="btn-saveposter">存海报</button>
+    </div>
+    <div class="tips">已解锁结局：${Object.keys(META.endings).length} / ${Object.keys(ENDINGS).length} · 结局判定看：欠款、口碑、常客故事线、存款</div>`;
+  showScreen("ending");
+  drawPoster(e);
+  $("#btn-again").onclick = ()=>{ closeModal(); toTitle(); };
+  $("#btn-saveposter").onclick = ()=>{
+    const a = document.createElement("a");
+    a.download = "开个面馆-结局.png";
+    a.href = $("#poster-canvas").toDataURL("image/png");
+    a.click();
+  };
+  localStorage.removeItem(BALANCE.saveKey); G = null;
+}
+function drawPoster(e){
+  const cv = $("#poster-canvas"); if(!cv) return;
+  const c = cv.getContext("2d");
+  const W = 540, H = 810;
+  c.fillStyle = "#f6f1e6"; c.fillRect(0,0,W,H);
+  c.fillStyle = "#2b2320"; c.fillRect(40,40,W-80,6);
+  c.fillStyle = "#b8402e";
+  c.font = "bold 44px 'PingFang SC','Microsoft YaHei',sans-serif";
+  c.textAlign = "center";
+  c.fillText("开个面馆", W/2, 120);
+  c.font = "16px sans-serif"; c.fillStyle = "#8a7c6e";
+  c.fillText("山城清晨 · 三十天", W/2, 148);
+  c.fillStyle = ENDINGS[e.id].tone==="bad" ? "#a03428" : (ENDINGS[e.id].tone ? "#2f6b4f" : "#57493f");
+  c.font = "bold 34px 'PingFang SC',sans-serif";
+  c.fillText("「"+e.title+"」", W/2, 220);
+  c.fillStyle = "#57493f"; c.font = "15px sans-serif";
+  const lines = [
+    "出餐 "+G.totalServed+" 碗 · 最高连击 ×"+(G.bestCombo||0),
+    "口碑 "+Math.round(G.rep)+" · 余额 ¥"+Math.round(G.money),
+    G.debtPaid>=BALANCE.debt ? "欠款：已还清" : "欠款：剩 ¥"+(BALANCE.debt-G.debtPaid),
+  ];
+  lines.forEach((l,i)=>c.fillText(l, W/2, 280+i*30));
+  /* 一碗面 */
+  c.save(); c.translate(W/2, 420); c.scale(2.4,2.4);
+  c.fillStyle="#b8402e"; c.beginPath(); c.arc(0,0,34,0,Math.PI); c.fill();
+  c.fillStyle="#f0d9a8"; c.beginPath(); c.ellipse(0,-4,30,10,0,0,Math.PI*2); c.fill();
+  c.strokeStyle="#d4553f"; c.lineWidth=3; c.beginPath(); c.moveTo(-20,-6); c.quadraticCurveTo(0,4,20,-6); c.stroke();
+  c.fillStyle="#7c5a2e"; c.beginPath(); c.arc(-8,-9,4,0,7); c.fill();
+  c.fillStyle="#5e7a4a"; c.beginPath(); c.arc(9,-10,3,0,7); c.fill();
+  c.strokeStyle="#8a5a34"; c.lineWidth=3; c.beginPath(); c.moveTo(28,-8); c.lineTo(48,-30); c.stroke();
+  c.restore();
+  c.fillStyle = "#8a7c6e"; c.font = "13px sans-serif";
+  c.fillText("—— 灶上的火不等人 ——", W/2, 560);
+  c.fillStyle = "#2b2320"; c.fillRect(40, 720, W-80, 3);
+  c.fillText("评语 · "+e.grade, W/2, 760);
+}
+
+/* ---------- 暂停 / 设置 ---------- */
+function pauseToggle(){
+  if(!R || !R.running) return;
+  if(R.paused && modalPauseCb) return;
+  R.paused = !R.paused;
+  if(R.paused){
+    modal("歇口气", "<p>面馆打了个烊（暂停）。水还温着，客人还在等。</p>",
+      [{name:"继续营业", primary:true, fn:()=>{}}]);
+  }
+}
+
+/* ---------- 标题 ---------- */
+function toTitle(){
+  R = null;
+  showScreen("title");
+  refreshTitle();
+}
+function refreshTitle(){
+  const hasSave = !!(G && G.day>0);
+  $("#btn-continue").disabled = !hasSave;
+  $("#btn-continue").textContent = hasSave ? `继续 · 第 ${G.day} 天` : "继续经营";
+}
+function startNew(){
+  newGame();
+  META.runs = (META.runs||0)+1; saveMeta();
+  saveGame();
+  showHelp(()=>{
+    modal("外婆的债", "<p>外婆住院了，面馆交到你手上。</p><p>三十天，欠款 <b>¥15000</b>：第 10 天还 3000，第 20 天累计 8000，第 30 天还清。</p><p>灶上的火不等人。手要快，心要稳。</p>",
+      [{name:"接下面馆", primary:true, fn:()=>{ G.day = 1; showDayBrief(); }}], "开张");
+  });
+}
+function showHelp(done){
+  modal("怎么玩",
+    `<p><b>1.</b> 客人坐下后<b>点客人</b> → 面下锅（占一个灶眼）。</p>
+     <p><b>2.</b> 灶眼上的进度条走到<b>绿区</b>时点灶眼捞面：早了夹生，晚了坨。</p>
+     <p><b>3.</b> 面进调味台后，<b>按气泡上的配方顺序</b>点佐料。特辣要多放油辣子，点错扣品质。</p>
+     <p><b>4.</b> 调完自动出餐。客人耐心有限，等太久会走。</p>
+     <p>连击加钱，口碑引流。每天收摊后可以添设备、上新菜。</p>`,
+    [{name:"晓得了", primary:true, fn:()=>done&&done()}], "玩法");
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+if(!HEADLESS){
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden && R && R.running && !R.paused) pauseToggle(); });
+  $("#btn-new").onclick = ()=>{ AUDIO.tap(); startNew(); };
+  $("#btn-continue").onclick = ()=>{ AUDIO.tap(); if(loadGame()){ showDayBrief(); } };
+  $("#btn-help").onclick = ()=>{ showHelp(null); };
+  $("#btn-pause").onclick = ()=>{ pauseToggle(); };
+  $("#btn-save-tools").onclick=saveTools;
+  window.addEventListener("storage",e=>{if(e.key===BALANCE.saveKey){if(R)R.paused=true;toast("另一标签页进度已变化，请刷新后继续");}});
+  loadMeta();
+  if(!loadGame()) G = null;
+  refreshTitle();
+  /* 主循环 */
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now-last)/1000);
+    last = now;
+    if(R && R.running) tick(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* 导出给无头测试 */
+if(typeof globalThis!=="undefined"){
+  globalThis.__KMG = { BALANCE, DISHES, TOPPINGS, MENU_ORDER, UPGRADES, EVENTS, REGULARS,
+    makeRng, makeOrder, unlockedMenu, dayParams, customersOfDays, computeQuality, qualityTier,
+    payOf, repDelta, dayCost, endingCalc, newGame, getG:()=>G, EVENTS_pick:null };
+}
+
+/* PWA：离线可玩 */
+if(!HEADLESS && "serviceWorker" in navigator){
+  addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>

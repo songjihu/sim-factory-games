@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="24" fill="#b8402e"/>
+  <path d="M28,62 A32,22 0 0 0 92,62 L87,74 A27,16 0 0 1 33,74 Z" fill="#f6f1e6"/>
+  <path d="M32,60 Q60,72 88,60 Q74,46 60,48 Q46,46 32,60 Z" fill="#f0d9a8"/>
+  <path d="M40,57 Q60,65 80,57" stroke="#d4553f" stroke-width="4" fill="none"/>
+  <circle cx="50" cy="53" r="4.5" fill="#7c5a2e"/>
+  <circle cx="68" cy="52" r="3.6" fill="#5e7a4a"/>
+  <path d="M88,56 L108,34 M92,64 L114,50" stroke="#f6f1e6" stroke-width="4" stroke-linecap="round"/>
+  <text x="60" y="104" font-size="15" fill="#f6d8a0" text-anchor="middle" font-weight="bold" letter-spacing="3">陈记小面</text>
+</svg>
