@@ -1,6 +1,6 @@
 /* 开个面馆 · Service Worker：缓存本体，离线可玩 */
-const CACHE = "kmg-g201-v1.0.2";
-const ASSETS = ["./", "./index.html", "./icon.svg", "./manifest.webmanifest"];
+const CACHE = "kmg-g201-v1.1.0";
+const ASSETS = ["./", "./index.html", "./icon.svg", "./manifest.webmanifest", "./scene-dawn.png", "./scene-kitchen.png", "./scene-evening.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

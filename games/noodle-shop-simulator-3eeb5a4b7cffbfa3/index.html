@@ -159,13 +159,29 @@ button{font-family:var(--font);border:none;cursor:pointer;background:none;color:
 .float-note small{font-size:11px;font-weight:400;color:#d8cfc2;}
 .phone-order{display:flex;align-items:center;gap:8px;margin:4px 8px;padding:7px 10px;background:#fbf3dd;border:1.5px solid var(--gold);border-radius:10px;font-size:12px;font-weight:700;color:var(--goldt);}
 .ing{display:flex;align-items:center;justify-content:center;gap:3px;min-height:42px;padding:4px 2px!important}.ing svg{width:25px;height:25px;flex-shrink:0}.ing span{font-size:12px}@media(max-width:360px){.ing{flex-direction:column;gap:0}.ing svg{width:22px;height:22px}}
+
+:root{--paper:#f1dfb5;--paper2:#e4c995;--card:#fff0cd;--ink:#3e302c;--ink2:#6c5141;--line:#a78a5c;--r:2px;--shadow:3px 3px 0 #af8a5c55;--good:#4d8068;--bad:#b54b37}
+body{background:#372e32;background-image:none;font-family:"Microsoft YaHei",sans-serif}
+.btn,.icon-btn,.seat,.burner,#prep,.ing,.order-bubble,.chip,#modal-box,.si-buy{border-radius:2px!important}
+.btn,.ing,.icon-btn{border:2px solid #987748;box-shadow:2px 3px 0 #b5976a}
+.btn:active,.ing:active{transform:translate(1px,2px);box-shadow:none}
+.seat .ava{width:48px;height:48px;border-radius:0;border:2px solid #a78a5c;image-rendering:pixelated}
+.seat .ava svg{image-rendering:pixelated}
+.ingredient-pixel{width:27px;height:27px;image-rendering:pixelated;flex-shrink:0}
+#palette-grid{gap:7px}.ing{min-height:44px;background:#fff0cd}.ing span{font-weight:700}
+.cook-track,.cook-fill,.patience-wrap,.patience-bar{border-radius:0!important}
+.title-art{display:none!important}.pixel-title-scene{width:100%;height:29%;object-fit:cover;image-rendering:pixelated;border-bottom:4px solid #a78a5c}
+#seats{background:linear-gradient(#f1dfb5e0,#f1dfb5f0),url('scene-kitchen.png') center bottom/cover}
+.pixel-settle-scene{width:100%;height:90px;object-fit:cover;image-rendering:pixelated;margin-bottom:6px}
+@media(max-width:360px){.seat .ava{width:40px;height:40px}.ingredient-pixel{width:23px;height:23px}.ing{gap:1px}}
+.pixel-game-scene{height:clamp(70px,15dvh,130px);flex-shrink:0;position:relative;border-bottom:3px solid #987748}.pixel-game-scene img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}.pixel-game-scene span{position:absolute;bottom:5px;left:8px;background:#3e302cdd;color:#fff0cd;font-size:10px;padding:3px 6px}@media(max-height:650px){.pixel-game-scene{height:64px}}
 </style>
 </head>
 <body>
 <div id="app">
   <!-- 标题 -->
   <div id="scr-title" class="screen">
-    <svg id="title-art" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+    <img class="pixel-title-scene" src="scene-dawn.png" alt="山城清晨的像素面馆"><svg class="title-art" id="title-art" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
       <rect width="520" height="300" fill="#f6f1e6"/>
       <rect x="0" y="250" width="520" height="50" fill="#e7dcc4"/>
       <!-- 远山 -->
@@ -203,13 +219,13 @@ button{font-family:var(--font);border:none;cursor:pointer;background:none;color:
     </svg>
     <div class="title-pad">
       <div class="game-title">开个面馆</div>
-      <div class="game-sub" data-version="1.0.2">山城清晨 · 三十天</div>
+      <div class="game-sub" data-version="1.1.0">山城清晨 · 三十天</div>
       <div class="title-btns">
         <button class="btn primary" id="btn-continue">继续经营</button>
         <button class="btn" id="btn-new">开张</button>
         <button class="btn" id="btn-help">怎么玩</button><button class="btn" id="btn-save-tools">存档管理</button>
       </div>
-      <div class="tips" id="title-tips">外婆的面馆，三十天，一万五的债。<br>灶上的火不等人，手要快，心要稳。</div>
+      <div class="tips" id="title-tips">外婆的面馆，三十天，六千块的债。<br>灶上的火不等人，手要快，心要稳。</div>
     </div>
   </div>
   <!-- 游戏 -->
@@ -218,11 +234,11 @@ button{font-family:var(--font);border:none;cursor:pointer;background:none;color:
       <div class="hud-item"><span class="hud-k" id="hud-day-k">第1天</span><span class="hud-v" id="hud-day">清晨</span></div>
       <div class="hud-item"><span class="hud-k">钱</span><span class="hud-v" id="hud-money">¥0</span></div>
       <div class="hud-item"><span class="hud-k">口碑</span><span class="hud-v" id="hud-rep">50</span></div>
-      <div class="hud-item"><span class="hud-k">欠款</span><span class="hud-v warn" id="hud-debt">¥15000</span></div>
+      <div class="hud-item"><span class="hud-k">欠款</span><span class="hud-v warn" id="hud-debt">¥6000</span></div>
       <div id="hud-spacer"></div>
       <button class="icon-btn" id="btn-pause" aria-label="暂停"><svg viewBox="0 0 24 24" fill="none" stroke="#57493f" stroke-width="2.4"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button>
     </div>
-    <div id="seats"></div>
+    <div class="pixel-game-scene"><img src="scene-kitchen.png" alt="像素灶台与佐料柜"><span>竹器巷 · 今日开张</span></div><div id="seats"></div>
     <div id="phone-slot"></div>
     <div id="mid">
       <div class="row-label">灶 台</div>
@@ -597,7 +613,7 @@ function loadGame(){
 function validSave(g){
  return g && g.ver===BALANCE.ver && Number.isInteger(g.day) && g.day>=1 && g.day<=30 &&
  ['money','debtPaid','rep','totalServed','totalRuined','missedMilestones','interest'].every(k=>Number.isFinite(g[k])) &&
- g.money>=0 && g.debtPaid>=0 && g.debtPaid<=BALANCE.debt && g.upgrades && g.regulars && g.flags && Array.isArray(g.dayLog);
+ g.money>=0 && g.debtPaid>=0 && g.debtPaid<=BALANCE.debt && g.upgrades && typeof g.upgrades==='object' && g.regulars && ['zhou','chen','lei','niang'].every(k=>Number.isFinite(g.regulars[k])&&g.regulars[k]>=0&&g.regulars[k]<=3) && g.flags && Array.isArray(g.dayLog);
 }
 function saveTools(){
  modal('存档管理','<p>进度保存在当前设备、当前浏览器。每日开张与收摊保存；营业途中恢复会从本日开张重新开始。</p><p>主入口与备用入口互不自动同步。切换前导出，在新入口导入。导入会替换此入口当前进度。</p>',[
@@ -695,18 +711,14 @@ function closeModal(){
 }
 
 /* 常客 SVG 直接复用；散客生成头像 */
-function portraitAvatar(seed, kind=0){
- const rng=makeRng(seed),pick=a=>a[Math.floor(rng()*a.length)];
- const skin=pick(['#edc5a4','#dbad89','#c79270']),coat=pick(['#547c79','#b85f4b','#526b8c','#9b8054','#8d6d88']);
- const hair=kind===1?'#b9b3a4':pick(['#44352e','#644939','#302e32']);
- const bg=pick(['#e8e5d5','#e7dfd6','#dfe8e3','#e7dfeb']);
- const style=kind||1+Math.floor(rng()*4);
- const hairPath=style===3?`<path d="M22 30Q25 10 42 13Q58 15 59 34L53 40 50 26Q34 36 25 30Z" fill="${hair}"/><circle cx="56" cy="22" r="9" fill="${hair}"/>`:style===4?`<path d="M21 29Q40 5 60 28L58 33H22Z" fill="${coat}"/><path d="M21 29H61" stroke="#e7c99b" stroke-width="4"/>`:`<path d="M23 34Q17 12 39 11Q61 10 58 35L53 29 51 21Q38 33 26 27Z" fill="${hair}"/>`;
- return `<svg viewBox="0 0 80 80" role="img" aria-label="顾客头像"><circle cx="40" cy="40" r="40" fill="${bg}"/><circle cx="63" cy="13" r="17" fill="#fff" opacity=".25"/><path d="M12 80Q15 53 32 53H48Q67 55 69 80" fill="${coat}"/><path d="M33 51V58Q40 65 47 58V51" fill="${skin}"/><path d="M28 57L39 66 31 72 24 59M51 57L40 66 49 72 57 60" fill="#f6efe0"/><path d="M40 66V80" stroke="#fff" opacity=".35"/><ellipse cx="40" cy="34" rx="18" ry="21" fill="${skin}"/><ellipse cx="22" cy="37" rx="3" ry="5" fill="${skin}"/><ellipse cx="58" cy="37" rx="3" ry="5" fill="${skin}"/>${hairPath}<path d="M28 34Q32 31 35 34M45 34Q49 31 52 34" fill="none" stroke="${hair}" stroke-width="1.5" stroke-linecap="round"/><ellipse cx="32" cy="38" rx="1.6" ry="2.1" fill="#382b27"/><ellipse cx="48" cy="38" rx="1.6" ry="2.1" fill="#382b27"/><path d="M39 39L37 45H41" fill="none" stroke="#b77c61" stroke-width="1.2"/><ellipse cx="28" cy="44" rx="4" ry="2.4" fill="#ca7d6b" opacity=".35"/><ellipse cx="52" cy="44" rx="4" ry="2.4" fill="#ca7d6b" opacity=".35"/><path d="M34 49Q40 54 46 49" fill="none" stroke="#9d5649" stroke-width="1.8" stroke-linecap="round"/>${style===2?'<g fill="none" stroke="#62594e" stroke-width="1.4"><rect x="25" y="33" width="12" height="10" rx="3"/><rect x="43" y="33" width="12" height="10" rx="3"/><path d="M37 36H43"/></g>':''}</svg>`;
+function portraitAvatar(seed,kind=0){
+ const rng=makeRng(seed),pick=a=>a[Math.floor(rng()*a.length)],skin=pick(['#edc5a4','#d9a17d','#bf8965']),coat=pick(['#55877b','#bd624e','#567493','#ad8748','#94708b']),hair=kind===1?'#bdb6a3':pick(['#49362e','#69503a','#30313b']);
+ const style=kind||1+Math.floor(rng()*4),bg=pick(['#e9d9b4','#cbdacc','#d6d5e3','#ecd2c1']);
+ return `<svg viewBox="0 0 24 24" shape-rendering="crispEdges" role="img" aria-label="像素顾客头像"><path fill="${bg}" d="M0 0H24V24H0Z"/><path fill="${coat}" d="M5 18H19V20H21V24H3V20H5Z"/><path fill="${skin}" d="M10 15H14V19H10ZM7 6H17V8H19V13H17V16H15V17H9V16H7V13H5V8H7Z"/><path fill="${hair}" d="M7 4H17V6H19V10H17V7H14V8H10V7H7V11H5V6H7Z"/><path fill="#3d302b" d="M8 10H10V12H8ZM14 10H16V12H14Z"/><path fill="#c47866" d="M7 13H9V14H7ZM15 13H17V14H15ZM10 15H14V16H10Z"/><path fill="#f6ead1" d="M7 18H10V20H12V22H9ZM14 18H17L15 22H12V20H14Z"/>${style===2?'<path fill="#6a594b" d="M7 9H11V10H13V9H17V13H13V11H11V13H7ZM8 10V12H10V10ZM14 10V12H16V10Z" fill-rule="evenodd"/>':''}${style===3?`<path fill="${hair}" d="M17 5H21V10H18ZM5 6H7V16H5Z"/>`:''}${style===4?`<path fill="${coat}" d="M7 3H17V5H19V7H5V5H7Z"/><path fill="#e8c276" d="M5 6H20V8H5Z"/>`:''}</svg>`;
 }
-function genericAvatar(rng,name){let n=0;for(const c of name)n=(n*31+c.charCodeAt(0))>>>0;return portraitAvatar(n);}
+function genericAvatar(rng,name){let n=name?0:Math.floor(rng()*1000000);for(const c of (name||""))n=(n*31+c.charCodeAt(0))>>>0;return portraitAvatar(n);}
 function regularAvatar(reg){return portraitAvatar(111+REGULARS.indexOf(reg)*853,REGULARS.indexOf(reg)+1);}
-function ingredientIcon(id){
+function ingredientVector(id){
  const shapes={
  suan:'<path d="M15 8Q5 19 12 25Q20 29 25 22Q29 16 15 8Z" fill="#f0ddaf"/><path d="M16 12L16 22" stroke="#b39462"/><path d="M19 6Q24 2 27 6" stroke="#70926b" fill="none"/>',
  jy:'<rect x="12" y="5" width="10" height="5" rx="2" fill="#b65b41"/><path d="M12 10H22L25 27H9Z" fill="#704431"/><path d="M12 16H22V23H12Z" fill="#edd3a1"/>',
@@ -714,10 +726,25 @@ function ingredientIcon(id){
  hj:'<g fill="#8b5d43"><circle cx="12" cy="14" r="4"/><circle cx="21" cy="13" r="4"/><circle cx="16" cy="22" r="4"/></g><path d="M15 11L20 5M20 9L25 8" stroke="#6e8255" stroke-width="2"/>',
  ch:'<g fill="none" stroke="#65854e" stroke-width="4"><ellipse cx="11" cy="13" rx="4" ry="3"/><ellipse cx="22" cy="12" rx="4" ry="3"/><ellipse cx="16" cy="23" rx="4" ry="3"/></g>',
  dan:'<path d="M6 18Q7 7 17 6Q28 7 28 18Q27 28 16 28Q5 27 6 18Z" fill="#f7ead0" stroke="#d4ba8b"/><circle cx="17" cy="17" r="6" fill="#e6ad3b"/>',
+ yc:'<path d="M8 21L12 11 17 17 23 9 27 20 19 26Z" fill="#7e864c"/><path d="M10 22L23 14" stroke="#c6bc7c"/>',
+ hs:'<g fill="#be8b50" stroke="#8a623d"><ellipse cx="12" cy="15" rx="4" ry="7"/><ellipse cx="22" cy="20" rx="4" ry="7"/></g>',
+ jz:'<path d="M5 17H29L25 27H9Z" fill="#d7c29a"/><g fill="#84523b"><rect x="9" y="11" width="6" height="6"/><rect x="17" y="9" width="6" height="6"/><rect x="21" y="15" width="6" height="5"/></g>',
+ nr:'<path d="M7 9L19 6 28 14 23 26 9 24 5 17Z" fill="#9e5942"/><path d="M9 13L22 18M11 21L24 11" stroke="#d5a275" stroke-width="3"/>',
+ fc:'<path d="M8 11Q13 5 17 13T25 14Q30 20 23 24T10 24" fill="none" stroke="#bd8a62" stroke-width="7"/>',
+ wz:'<path d="M5 18H29L25 28H9Z" fill="#e2cda8"/><g fill="#c9ac52"><circle cx="10" cy="14" r="4"/><circle cx="18" cy="12" r="4"/><circle cx="24" cy="16" r="4"/></g>',
  qing:'<path d="M16 27Q1 18 8 7Q19 9 16 27M17 26Q17 6 28 7Q31 21 17 26" fill="#60834f"/><path d="M16 29L13 16M17 27L24 13" fill="none" stroke="#c8d4a0" stroke-width="2"/>'};
- return `<svg viewBox="0 0 34 34" aria-hidden="true">${shapes[id]||'<path d="M7 11H27L24 27H10Z" fill="#a47c56"/><path d="M8 11Q17 3 26 11" fill="#d8b68c"/>'}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34" aria-hidden="true">${shapes[id]||'<path d="M7 11H27L24 27H10Z" fill="#a47c56"/><path d="M8 11Q17 3 26 11" fill="#d8b68c"/>'}</svg>`;
 }
 
+const ingredientSprites={};
+function ingredientIcon(id){
+ if(!ingredientSprites[id]){
+  const canvas=document.createElement('canvas');canvas.width=24;canvas.height=24;
+  const img=new Image();img.onload=()=>{const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(img,0,0,24,24);ingredientSprites[id]=canvas.toDataURL();document.querySelectorAll(`[data-ingredient="${id}"] img`).forEach(e=>e.src=ingredientSprites[id]);};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(ingredientVector(id));
+ }
+ return `<img class="ingredient-pixel" alt="" src="${ingredientSprites[id]||'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(ingredientVector(id))}">`;
+}
 /* =====================================================================
    SERVICE —— 实时循环
    ===================================================================== */
@@ -1316,7 +1343,7 @@ function endDay(){
 }
 function showSettle(res){
   const last = G.day >= BALANCE.days;
-  const tbl = `<table class="settle-table">
+  const tbl = `<img class="pixel-settle-scene" src="scene-evening.png" alt="像素面馆收摊"><table class="settle-table">
     <tr><td>卖面收入</td><td>+¥${Math.round(R.revenue)}</td></tr>
     ${G.upgrades.fridge&&R.soda?`<tr><td>汽水</td><td>含在收入里（${R.soda}瓶）</td></tr>`:""}
     <tr><td>房租水电</td><td>-¥${res.cost}</td></tr>
@@ -1489,7 +1516,7 @@ function startNew(){
   META.runs = (META.runs||0)+1; saveMeta();
   saveGame();
   showHelp(()=>{
-    modal("外婆的债", "<p>外婆住院了，面馆交到你手上。</p><p>三十天，欠款 <b>¥15000</b>：第 10 天还 3000，第 20 天累计 8000，第 30 天还清。</p><p>灶上的火不等人。手要快，心要稳。</p>",
+    modal("外婆的债", "<p>外婆住院了，面馆交到你手上。</p><p>三十天，欠款 <b>¥6000</b>：第 10 天还 1500，第 20 天累计 3500，第 30 天还清。</p><p>灶上的火不等人。手要快，心要稳。</p>",
       [{name:"接下面馆", primary:true, fn:()=>{ G.day = 1; showDayBrief(); }}], "开张");
   });
 }
