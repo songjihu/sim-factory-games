@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f3ecdc"/>
+  <rect x="26" y="26" width="460" height="460" rx="74" fill="none" stroke="#2f4a63" stroke-width="6" opacity=".28"/>
+  <rect x="108" y="150" width="296" height="250" rx="6" fill="#faf5e9" stroke="#d8cdb4" stroke-width="4"/>
+  <g stroke="#cfc4aa" stroke-width="3" stroke-dasharray="7 7">
+    <line x1="130" y1="196" x2="382" y2="196"/>
+    <line x1="130" y1="238" x2="382" y2="238"/>
+    <line x1="130" y1="280" x2="382" y2="280"/>
+    <line x1="130" y1="322" x2="382" y2="322"/>
+  </g>
+  <path d="M206 150 L206 108 L150 132 L150 150" fill="none" stroke="#2f4a63" stroke-width="9" stroke-linecap="round"/>
+  <path d="M306 150 L306 108 L362 132 L362 150" fill="none" stroke="#2f4a63" stroke-width="9" stroke-linecap="round"/>
+  <path d="M150 132 L362 132" fill="none" stroke="#2f4a63" stroke-width="9" stroke-linecap="round"/>
+  <g fill="none" stroke="#a34a3c" stroke-width="6" stroke-linecap="round">
+    <path d="M330 214 L358 268 L330 322"/>
+    <path d="M352 214 L380 268 L352 322"/>
+  </g>
+  <circle cx="256" cy="268" r="16" fill="none" stroke="#8a6b34" stroke-width="5" opacity=".8"/>
+  <text x="256" y="380" text-anchor="middle" font-family="KaiTi,STKaiti,serif" font-size="34" fill="#2f4a63" letter-spacing="8">裁缝</text>
+</svg>

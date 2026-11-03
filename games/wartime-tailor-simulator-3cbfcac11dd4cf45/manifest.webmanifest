@@ -1,0 +1,14 @@
+{
+  "name": "裁缝 · 一九四三",
+  "short_name": "裁缝",
+  "description": "一九四三年，重庆，巷子口的一间裁缝铺。替人做三十六身衣裳。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3ecdc",
+  "theme_color": "#f3ecdc",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

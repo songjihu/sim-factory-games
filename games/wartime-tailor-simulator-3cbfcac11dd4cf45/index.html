@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN" data-version="1.0.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#f3ecdc">
+<meta name="description" content="一九四三年，重庆，巷子口的一间裁缝铺。三十六位客人，三十六身衣裳，和一件你始终没给自己做的。">
+<title>裁缝 · 一九四三</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="content.js"></script>
+<script src="engine.js"></script>
+<script src="storage.js"></script>
+<script src="ui.js"></script>
+<script>
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
