@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>铁路规划模拟器 v1.1.0</title>
+<style>
+  :root{
+    --bg:#f2f5f3; --card:#ffffff; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb;
+    --green:#16a34a; --green-bg:#ecfdf3; --red:#dc2626; --blue:#2563eb; --blue-bg:#eff6ff;
+    --amber:#d97706; --amber-bg:#fffbeb; --purple:#7c3aed;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;padding-bottom:70px}
+  header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .brand{font-weight:800;font-size:16px}
+  .brand .ver{font-size:10px;color:#fff;background:linear-gradient(90deg,#7c3aed,#2563eb);border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+  .clock{font-variant-numeric:tabular-nums;background:var(--green-bg);color:var(--green);border-radius:10px;padding:5px 12px;font-weight:700}
+  .speed{display:flex;gap:4px}
+  .speed button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:700;color:var(--sub)}
+  .speed button.on{background:var(--green);border-color:var(--green);color:#fff}
+  .cash{margin-left:auto;font-weight:800;color:var(--green);font-size:16px;font-variant-numeric:tabular-nums}
+  .cash.neg{color:var(--red)}
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  nav button{border:0;background:none;font-size:12px;color:var(--sub);cursor:pointer;padding:4px 10px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:2px}
+  nav button .ic{font-size:18px}
+  nav button.on{color:var(--green);font-weight:700;background:var(--green-bg)}
+  main{max-width:860px;margin:14px auto;padding:0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .card{background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .card h4{font-size:13px;color:var(--sub);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .big{font-size:22px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums}
+  .small{font-size:12px;color:var(--sub);margin-top:4px}
+  .pos{color:var(--green)} .neg{color:var(--red)} .blue{color:var(--blue)} .amber{color:var(--amber)}
+  .tag{font-size:11px;border-radius:8px;padding:2px 8px;font-weight:600;white-space:nowrap}
+  .tag.g{background:var(--green-bg);color:var(--green)} .tag.b{background:var(--blue-bg);color:var(--blue)}
+  .tag.a{background:var(--amber-bg);color:var(--amber)} .tag.r{background:#fef2f2;color:var(--red)} .tag.gr{background:#f3f4f6;color:var(--sub)}
+  .btn{border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px;background:var(--green);color:#fff}
+  .btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.red{background:#fee2e2;color:var(--red)}
+  .btn.blue{background:var(--blue)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+  .sect{margin:18px 0 10px;font-weight:800;font-size:15px}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .row{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+  .row .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .row .name{font-weight:800;font-size:15px}
+  .row .meta{font-size:12px;color:var(--sub);margin-top:5px;line-height:1.7}
+  .stations{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .st{font-size:11px;background:#f8fafc;border:1px solid var(--line);border-radius:7px;padding:2px 7px;color:#475569}
+  .prog{height:7px;background:#eef2f0;border-radius:5px;margin-top:8px;overflow:hidden}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#4ade80);border-radius:5px;transition:width .3s}
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:86vh;overflow:auto;padding:18px}
+  .modal h3{font-size:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .modal .x{cursor:pointer;border:0;background:#f3f4f6;border-radius:8px;width:26px;height:26px;font-size:14px}
+  .opt{border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;cursor:pointer}
+  .opt:hover{border-color:var(--green)}
+  .opt.sel{border-color:var(--green);background:var(--green-bg)}
+  select,input{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;width:100%;background:#fff;color:var(--ink)}
+  label.lb{font-size:12px;color:var(--sub);font-weight:700;display:block;margin:12px 0 5px}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  #toasts{position:fixed;top:64px;right:14px;z-index:200;display:flex;flex-direction:column;gap:8px;max-width:320px}
+  .toast{background:#111827;color:#fff;border-radius:12px;padding:10px 14px;font-size:13px;box-shadow:var(--shadow);animation:fin .25s;line-height:1.5}
+  .toast.ok{background:#065f46}.toast.bad{background:#7f1d1d}
+  @keyframes fin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+  .empty{text-align:center;color:var(--sub);padding:30px 0;font-size:13px}
+  .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .r1{color:var(--red)}.r2{color:#ea580c}.r3{color:var(--amber)}.r4{color:#65a30d}.r5{color:var(--green)}
+  .banner{background:linear-gradient(120deg,#312e81,#4c1d95 60%,#5b21b6);color:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .banner .t{font-weight:800;font-size:15px}
+  .banner p{font-size:12px;opacity:.85;margin:8px 0 12px;line-height:1.7}
+
+/* 1.1 调度台：线网与站台承接操作 */
+:root{--bg:#e9efed;--ink:#14343b;--sub:#63797d;--green:#087d79;--green-bg:#e4f4ee;--line:#d5e2df;--shadow:0 5px 18px #173f3910}
+body{height:100dvh;overflow:hidden;padding:0;background:radial-gradient(at 15% 0%,#d7e9de,transparent 60%),#e9efed}
+header{height:112px;max-width:1100px;margin:auto;background:#f7faf6;box-shadow:none;gap:6px 10px;padding:10px 18px;border:0;border-bottom:1px solid #d4e2db}
+.brand{font-size:18px;letter-spacing:1px;flex:1 1 55%}.brand .ver{background:#123c43;font-size:9px;letter-spacing:0}.cash{font-size:16px;margin:0}.clock{font-size:11px;padding:5px 7px;background:#dcece4;color:#255a54}.speed{gap:3px}.speed button{font-size:11px;padding:5px 8px;min-height:30px}.speed button.on{background:#123c43;border-color:#123c43}
+header>.btn{margin-left:auto;font-size:11px;padding:7px 9px}main{height:calc(100dvh - 180px);max-width:1100px;margin:0 auto;padding:14px 16px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}nav{height:68px;background:#f8fbf7;padding:5px 4px max(6px,env(safe-area-inset-bottom));box-shadow:0 -5px 24px #1d43430b}nav button{font-size:10px;flex:1;padding:5px 1px;min-width:0}nav button .ic{font-size:18px}nav button.on{color:#087d79;background:#e1efea}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:11px 12px;border:1px solid #dbe5df;border-radius:12px;box-shadow:none}.big{font-size:19px}.card h4{font-size:11px}.small{font-size:11px;line-height:1.65}.row{box-shadow:none;border:1px solid #dbe5df;padding:12px;border-radius:12px}.row .name{font-size:14px}.row .meta{font-size:11px}.top{gap:5px!important}.btn{min-height:38px;border-radius:8px;letter-spacing:.2px}.btn.sm{min-height:34px;padding:6px 9px;font-size:11px}.tag{font-size:10px;padding:3px 6px}.sect{font-size:14px;margin:13px 0 8px}.modal-mask{backdrop-filter:blur(5px);padding:12px}.modal{max-height:calc(100dvh - 30px);padding:18px;border-radius:18px}.modal .x{min-width:36px;min-height:36px}.kv{gap:10px;line-height:1.6}#toasts{top:114px;right:12px;left:12px;max-width:420px;margin:auto;pointer-events:none}.toast{font-size:11px;padding:9px 12px}.toast:nth-last-child(n+3){display:none}
+.dispatch{position:relative;min-height:190px;border-radius:16px;overflow:hidden;background:#123e47;color:#fff;margin-bottom:10px}.dispatch img{width:100%;height:190px;object-fit:cover;display:block}.dispatch:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#082f3bc9,transparent 80%);pointer-events:none}.dispatch-copy{position:absolute;z-index:1;top:18px;left:17px;right:10px}.eyebrow{font:10px system-ui;letter-spacing:2px;color:#b5dbcf}.dispatch h1{font-size:24px;line-height:1.45;margin:8px 0}.dispatch p{font-size:11px;color:#deeee5}.dispatch-actions{position:absolute;z-index:2;bottom:14px;left:15px;display:flex;gap:7px}.dispatch-actions .btn{background:#e4b96c;color:#153b40}.dispatch-actions .btn.sec{background:#f6faf2;color:#153b40;border:0}.ticket{border:1px solid #cdded6;background:#f8fbf5;border-radius:13px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:center}.ticket b{font-size:13px}.ticket .seal{color:#087d79;border-right:1px dashed #afc8c1;padding-right:12px;font-size:25px}.ticket p{font-size:11px;color:#63797d;line-height:1.7;margin:3px 0}.ticket .btn{margin-left:auto;white-space:nowrap}.signal{display:flex;gap:6px;align-items:center;font-size:11px}.signal i{width:7px;height:7px;border-radius:50%;background:#3fc7a6;box-shadow:0 0 0 3px #44c7a625}.network{background:#123b43;border-radius:15px;padding:14px;margin-bottom:10px;color:#e7f3ec}.network h3{font-size:13px;display:flex;justify-content:space-between}.net-lines{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.net-line{padding:10px 6px;border:1px solid #ffffff25;background:#ffffff08;color:#acc2c3;border-radius:9px;font:11px inherit;cursor:pointer;text-align:left;min-height:50px}.net-line.built{border-color:#67d4b0;color:#ecfff2;background:#3b997c23}.net-line em{display:block;font-size:9px;font-style:normal;opacity:.65;margin-top:5px}.scene-small{width:100%;height:130px;object-fit:cover;border-radius:12px;margin-bottom:12px}.policy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.policy-grid button{white-space:normal;line-height:1.7}.log{border-left:2px solid #b7cfc4;padding:0 0 0 12px;margin:10px 0;font-size:11px;color:#53706c}.goal{padding:10px 0;border-bottom:1px dashed #d1ded7}.goal b{font-size:13px}.goal p{font-size:11px;color:#63797d;line-height:1.8}.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.mini-metrics>div{background:#f8fbf5;padding:10px;border-radius:10px;border:1px solid #d6e4db;font-size:10px;color:#63797d}.mini-metrics b{display:block;color:#183c40;font-size:16px;margin-top:4px}
+@media(min-width:760px){header{height:80px;flex-wrap:nowrap}.brand{flex:1}.dispatch img{height:245px}.dispatch{min-height:245px}.dispatch h1{font-size:34px}.grid{grid-template-columns:repeat(4,1fr)}main{height:calc(100dvh - 148px)}.net-lines{grid-template-columns:repeat(5,1fr)}.dispatch-copy{top:28px;left:25px}.dispatch-actions{left:25px;bottom:23px}}
+@media(max-height:700px){header{height:100px;padding:6px 12px;gap:3px}.brand{font-size:15px}main{height:calc(100dvh - 162px);padding:9px 10px}nav{height:62px}.dispatch,.dispatch img{height:128px;min-height:128px}.dispatch-copy{top:9px;left:12px}.dispatch h1{font-size:18px;margin:4px 0}.dispatch p{display:none}.dispatch-actions{bottom:8px;left:10px}.dispatch-actions .btn{font-size:10px;min-height:30px}.ticket{padding:8px;margin-bottom:8px}.ticket p{font-size:10px}.mini-metrics>div{padding:6px}.scene-small{height:90px}.cash{font-size:13px}.brand .ver{margin-left:3px}}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">🚄 铁路规划模拟器<span class="ver">v1.1.0</span></div>
+  <div class="clock">第 <span id="dayN">1</span> 天 · <span id="timeStr">05:00</span></div>
+  <div class="speed">
+    <button data-s="0" id="sp0">⏸</button>
+    <button data-s="1" class="on">1x</button>
+    <button data-s="2">2x</button>
+    <button data-s="5">5x</button>
+  </div>
+  <div class="cash" id="cashBox">💰 ¥<span id="cashV"></span></div>
+  <button class="btn sec sm" onclick="openDesk()">☰ 管理与存档</button>
+</header>
+<nav id="tabs"></nav>
+<main id="view"></main>
+<div id="modalRoot"></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+/* ================= 数据定义 ================= */
+const LINES=[
+ {id:'icrjj',name:'京津城际铁路',code:'JJN-ICR',speed:350,len:120,cost:3.0e8,built:true,stations:['北京南站','亦庄站','永乐站','武清站','天津站']},
+ {id:'hnxj',name:'沪宁城际铁路',code:'HN-ICR',speed:350,len:301,cost:7.5e8,stations:['上海站','苏州站','无锡站','常州站','丹阳站','南京站']},
+ {id:'qj',name:'胶济客运专线',code:'JQ-PDL',speed:250,len:362,cost:6.5e8,stations:['青岛站','潍坊站','淄博站','济南站']},
+ {id:'cy',name:'成渝高速铁路',code:'CY-HSR',speed:350,len:308,cost:7.7e8,stations:['成都东站','资阳北站','内江北站','重庆北站']},
+ {id:'zxi',name:'郑西高速铁路',code:'ZX-HSR',speed:350,len:505,cost:1.26e9,stations:['郑州东站','洛阳龙门站','三门峡南站','华山北站','西安北站']},
+ {id:'hd',name:'哈大高速铁路',code:'HADA-HSR',speed:350,len:921,cost:2.3e9,stations:['大连北站','营口东站','沈阳站','四平东站','长春西站','哈尔滨西站']},
+ {id:'js',name:'京沪高速铁路',code:'JINGHU-HSR',speed:350,len:1318,cost:3.3e9,stations:['北京南站','廊坊站','天津南站','济南西站','徐州东站','南京南站','上海虹桥站']},
+ {id:'lx',name:'兰新高速铁路',code:'LANXIN-HSR',speed:250,len:1776,cost:3.2e9,stations:['兰州西站','西宁站','张掖西站','嘉峪关南站','哈密站','乌鲁木齐站']},
+ {id:'jg',name:'京广高速铁路',code:'JINGGUANG-HSR',speed:350,len:2298,cost:5.7e9,stations:['北京西站','保定东站','石家庄站','郑州东站','武汉站','长沙南站','广州南站']},
+ {id:'hk',name:'沪昆高速铁路',code:'HUKUN-HSR',speed:350,len:2252,cost:5.6e9,stations:['上海虹桥站','杭州东站','南昌西站','长沙南站','贵阳北站','昆明南站']},
+];
+const BRANDS={
+ fuxing:{name:'复兴号',en:'FUXING',color:'r',desc:'中国标准动车组 · 350km/h 标杆，完全自主知识产权，从160到350全谱系覆盖。'},
+ hexie:{name:'和谐号',en:'HEXIE',color:'b',desc:'引进消化吸收再创新 · 经典家族，平台成熟、维护便捷，性价比极高。'},
+ train:{name:'火车',en:'LOCOMOTIVE',color:'g',desc:'韶山/东风经典机车与绿皮车厢，承担普速长客运货任务，稳定积累基础收益。'}
+};
+const MODELS=[
+ {id:'df4b',brand:'train',name:'东风4B 内燃机车 + 25G车底',speed:120,seats:1300,price:3.0e7,maint:5e3,cls:'K',rate:0.13,energy:8},
+ {id:'ss8',brand:'train',name:'韶山8 电力机车 + 直供电车底',speed:160,seats:1400,price:4.5e7,maint:6e3,cls:'K',rate:0.15,energy:9},
+ {id:'crh2a',brand:'hexie',name:'CRH2A 和谐号（8编）',speed:250,seats:610,price:1.8e8,maint:1.2e4,cls:'D',rate:0.32,energy:22},
+ {id:'crh380b',brand:'hexie',name:'CRH380B 和谐号（8编）',speed:350,seats:490,price:2.2e8,maint:1.5e4,cls:'G',rate:0.40,energy:28},
+ {id:'cr400af',brand:'fuxing',name:'CR400AF 复兴号（8编）',speed:350,seats:576,price:2.6e8,maint:1.6e4,cls:'G',rate:0.45,energy:30},
+ {id:'cr400b',brand:'fuxing',name:'CR400AF-B 复兴号（16编）',speed:350,seats:1193,price:4.8e8,maint:2.8e4,cls:'G',rate:0.45,energy:32},
+];
+const ROLES=[
+ {id:'hdriver',name:'高速动车司机',salary:16000,desc:'每趟高铁班次需配 1 名'},
+ {id:'kdriver',name:'普速火车司机',salary:9000,desc:'每趟普速班次需配 1 名'},
+ {id:'crew',name:'列车乘务员',salary:6500,desc:'按载客规模配备，保障旅客服务'},
+ {id:'ground',name:'车站地勤员',salary:7000,desc:'提升准点率与服务质量'},
+ {id:'engineer',name:'动车检修工程师',salary:11000,desc:'降低列车故障概率'},
+];
+const COMMS=[
+ {id:'canteen',icon:'🥡',name:'高铁餐车热链厨房与风味快餐',per:18,cost:2.0e6,desc:'为列车提供地方特色盒饭、冷热饮品与咖啡茶饮，增加每位乘客的非票收入。'},
+ {id:'vip',icon:'☕',name:'车站商务座贵宾候车厅',per:12,cost:5.0e6,desc:'提供独立安检通道、精美茶点与静音办公区，吸引更多商务旅客选择一等/商务座。'},
+ {id:'wifi',icon:'📺',name:'车厢Wi-Fi与全景数智车载广告',per:8,cost:3.0e6,desc:'列车全景媒体广告、镜框海报与车载高清5G门户广告，由知名品牌竞费投放。'},
+];
+const SURN='王李张刘陈杨黄赵周吴徐孙马朱胡郭何高林罗郑梁谢宋唐许韩冯邓曹彭';
+const GIVEN=['建军','志强','伟','明','国华','丽','敏','静','鹏','飞','泽宇','涛','婷','欣怡','浩然','子轩','建国','芳','磊','雪梅','俊杰','晓东','海燕','文博'];
+const TABS=[['ov','📊','概览'],['ln','🗺️','线路'],['fl','🚄','车队'],['sv','🕐','班次'],['hr','👥','员工'],['cm','🛍️','商业']];
+
+/* ================= 存档 ================= */
+const KEY='railway_G207_v1'; const LEGACY_KEY='railway_sim_v1';
+let S=null;
+function newState(){
+ return {
+  cash:5.0e8, T:300, speed:1, day:1, lastSettled:1, holiday:false,
+  lines:{icrjj:true},
+  trains:[{uid:1,modelId:'crh2a',freeAt:0}],
+  services:[], staff:[
+   {id:1,name:'张建军',role:'hdriver',hiredDay:1},{id:2,name:'李志强',role:'hdriver',hiredDay:1},
+   {id:3,name:'王丽',role:'crew',hiredDay:1},{id:4,name:'刘敏',role:'crew',hiredDay:1},
+   {id:5,name:'陈静',role:'crew',hiredDay:1},{id:6,name:'杨伟',role:'crew',hiredDay:1},
+   {id:7,name:'赵国华',role:'ground',hiredDay:1},{id:8,name:'周鹏',role:'ground',hiredDay:1},
+   {id:9,name:'吴涛',role:'engineer',hiredDay:1}],
+  loans:0, comm:{canteen:1,vip:1,wifi:1},
+  stats:{income:0,cost:0,trips:0,onTime:0,arrived:0},
+  yesterday:null, ids:{svc:100,train:1,staff:9}
+ };
+}
+let saveLocked=false,saveRev=0;
+function validState(d){
+ if(!d||typeof d!=='object'||!Number.isFinite(d.cash)||Math.abs(d.cash)>1e15||!Number.isInteger(d.T)||d.T<0||!Number.isInteger(d.day)||d.day!==Math.floor(d.T/1440)+1||!Number.isFinite(d.loans)||d.loans<0||!d.ids||!d.lines||!d.comm||!d.stats)throw Error('存档结构无效');
+ for(const k of ['svc','train','staff'])if(!Number.isInteger(d.ids[k])||d.ids[k]<0)throw Error('编号无效');
+ for(const k of ['income','cost','trips','onTime','arrived'])if(!Number.isFinite(d.stats[k])||d.stats[k]<0)throw Error('统计无效');
+ if(![d.trains,d.staff,d.services].every(Array.isArray)||d.trains.length>500||d.services.length>3000||d.staff.length>3000)throw Error('内容超出范围');
+ if(d.trains.some(t=>!MODELS.some(m=>m.id===t.modelId)||!Number.isInteger(t.uid)||!Number.isFinite(t.freeAt)))throw Error('车辆数据无效');
+ if(new Set(d.trains.map(t=>t.uid)).size!==d.trains.length)throw Error('车辆编号重复');
+ if(d.staff.some(p=>!ROLES.some(r=>r.id===p.role)||!Number.isInteger(p.id)||typeof p.name!=='string'||!/^[\u3400-\u9fffA-Za-z· ]{1,24}$/.test(p.name)))throw Error('人员数据无效');
+ if(d.services.some(x=>!d.trains.some(t=>t.uid===x.trainUid)||!LINES.some(l=>l.id===x.lineId)||!['wait','running','done'].includes(x.status)||!Number.isInteger(x.depMin)||x.depMin<0||x.depMin>=1440||!/^sv\d+$/.test(x.id)||!/^\w{1,14}$/.test(x.code)||x.status==='running'&&(!Number.isFinite(x.arriveAbs)||!Number.isFinite(x.depAbs))))throw Error('班次数据无效');
+ for(const c of COMMS)if(!Number.isInteger(d.comm[c.id]||0)||(d.comm[c.id]||0)<0||(d.comm[c.id]||0)>5)throw Error('商业等级无效');
+ if(d.ops){if(!Number.isFinite(d.ops.rep)||d.ops.rep<0||d.ops.rep>100||!Number.isFinite(d.ops.totalPax)||d.ops.totalPax<0||!Array.isArray(d.ops.claimed)||!Array.isArray(d.ops.log))throw Error('经营数据无效');d.ops.log=d.ops.log.filter(x=>typeof x==='string'&&!/[<>]/.test(x)).slice(0,12);d.ops.claimed=d.ops.claimed.filter(x=>Number.isInteger(x)&&x>=0&&x<12);d.ops.case=Math.max(0,Math.min(24,Number(d.ops.case)||0));d.ops.fare=['value','normal','premium'].includes(d.ops.fare)?d.ops.fare:'normal';}
+ d.speed=0;return d;
+}
+function save(){if(saveLocked||!S)return;try{saveRev=Math.max(Date.now(),saveRev+1);localStorage.setItem(KEY,JSON.stringify({game:'G207',version:'1.1.0',rev:saveRev,state:S}));}catch(e){if(!window.storageWarned){window.storageWarned=true;toast('存储空间不可用，请导出存档保留进度','bad');}}}
+function load(){try{let raw=localStorage.getItem(KEY),legacy=false;if(!raw){raw=localStorage.getItem(LEGACY_KEY);legacy=true;}if(!raw)return false;const p=JSON.parse(raw);S=validState(p.state||p);saveRev=p.rev||0;if(legacy)localStorage.setItem(KEY+'_legacy_backup',raw);return true;}catch(e){toast('存档损坏，原数据已保留。可在管理页导入备份。','bad');return false;}}
+addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){try{const p=JSON.parse(e.newValue);if(p.rev>saveRev){saveLocked=true;S.speed=0;openExternal();}}catch{}}});
+function openExternal(){modalOpen=true;$('modalRoot').innerHTML='<div class="modal-mask"><div class="modal"><h3>另一页面已有更新</h3><p class="small">已暂停本页写入，防止覆盖更新的进度。可以先导出当前进度，再载入最新存档。</p><div class="flex" style="margin-top:14px"><button class="btn" onclick="exportSave()">导出本页进度</button><button class="btn sec" onclick="location.reload()">载入最新</button></div></div></div>';}
+function exportSave(){const b=new Blob([JSON.stringify({game:'G207',version:'1.1.0',state:S},null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='铁路规划模拟器-第'+S.day+'天.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+function importSave(file){if(!file||saveLocked)return;if(file.size>2000000){toast('存档文件过大','bad');return;}file.text().then(raw=>{try{const p=JSON.parse(raw);if(p.game&&p.game!=='G207')throw Error('不属于本游戏');const d=validState(p.state||p);if(!confirm('导入后替换本页进度，当前进度将自动留一份本机备份。继续？'))return;localStorage.setItem(KEY+'_before_import',JSON.stringify(S));S=d;initOps();save();closeModal();renderClock();renderView();toast('存档已导入，当前已暂停','ok');}catch(e){toast('导入失败：'+e.message+'，当前进度未变','bad');}});}
+
+/* ================= 工具 ================= */
+const $=id=>document.getElementById(id);
+function fmt(v){
+ const a=Math.abs(v);
+ if(a>=1e8)return (v/1e8).toFixed(2)+' 亿';
+ if(a>=1e4)return (v/1e4).toFixed(1)+' 万';
+ return Math.round(v)+' 元';
+}
+function fmtY(v){return '¥'+fmt(v);}
+function lineOf(id){return LINES.find(l=>l.id===id);}
+function modelOf(id){return MODELS.find(m=>m.id===id);}
+function trainOf(uid){return S.trains.find(t=>t.uid===uid);}
+function staffCount(role){return S.staff.filter(s=>s.role===role).length;}
+function toast(msg,cls){
+ const box=$('toasts');const el=document.createElement('div');
+ el.className='toast'+(cls?' '+cls:'');el.innerHTML=msg;box.appendChild(el);
+ while(box.children.length>4)box.removeChild(box.firstChild);
+ setTimeout(()=>{if(el.parentNode)el.parentNode.removeChild(el);},5200);
+}
+function durMin(line,model){ // 单程时长（分钟）
+ const stops=line.stations.length;
+ return Math.round(line.len/model.speed*60 + stops*4);
+}
+function lfBase(){return 0.55+ (Math.random()*0.24-0.12);}
+function commBonusPerPax(){
+ return COMMS.reduce((s,c)=>s+c.per*(S.comm[c.id]||0),0);
+}
+function netAssets(){
+ const fleet=S.trains.reduce((s,t)=>s+modelOf(t.modelId).price*0.7,0);
+ return S.cash+fleet-S.loans;
+}
+function runningNeed(){
+ let need={hdriver:0,kdriver:0,crew:0};
+ S.services.forEach(sv=>{
+  if(sv.status==='running'){
+   const m=modelOf(trainOf(sv.trainUid).modelId);
+   if(m.speed>=200)need.hdriver++;else need.kdriver++;
+   need.crew+=Math.ceil(m.seats/300);
+  }
+ });
+ return need;
+}
+function breakdownRisk(){
+ return Math.max(0.005, 0.03-0.006*staffCount('engineer'));
+}
+
+/* ================= 核心模拟 ================= */
+function tick(){
+ if(S.speed===0)return;
+ for(let i=0;i<S.speed;i++){S.T++;minuteStep();}
+ renderClock();
+}
+function minuteStep(){
+ const day=Math.floor(S.T/1440)+1;
+ if(day!==S.day){S.day=day;newDay();}
+ const tod=S.T%1440;
+ S.services.forEach(sv=>{
+  if(sv.status==='wait'&&tod>=sv.depMin&&sv.depDay!==S.day){
+   if(tod-sv.depMin>90){sv.depDay=S.day;sv.status='done';toast('⚠️ '+sv.code+' 因资源不足今日停运');return;}
+   tryDepart(sv);
+  }
+  if(sv.status==='running'&&S.T>=sv.arriveAbs)arrive(sv);
+ });
+}
+function tryDepart(sv){
+ const line=lineOf(sv.lineId),train=trainOf(sv.trainUid);
+ if(!train||train.freeAt>S.T)return; // 车辆未回库，继续等待
+ const m=modelOf(train.modelId);
+ const need=runningNeed();
+ const driverRole=m.speed>=200?'hdriver':'kdriver';
+ need[driverRole]++;need.crew+=Math.ceil(m.seats/300);
+ if(staffCount(driverRole)<need[driverRole]||staffCount('crew')<need.crew){
+  sv.late=true;return; // 等待人员
+ }
+ sv.depDay=S.day;sv.status='running';sv.delay=Math.max(0,todMinutes()-sv.depMin);
+ sv.depAbs=S.T;sv.arriveAbs=S.T+durMin(line,m);
+ const risk=breakdownRisk();
+ const departureDelay=sv.delay;
+ if(Math.random()<risk){
+  sv.delay+=20+Math.floor(Math.random()*50);
+  sv.arriveAbs+=sv.delay-departureDelay;
+  toast('🔧 '+sv.code+' 列车设备故障，预计晚点 '+sv.delay+' 分钟','bad');
+ }
+ train.freeAt=sv.arriveAbs+90;
+ const energy=line.len*m.energy;
+ S.cash-=energy;S.stats.cost+=energy;
+}
+function arrive(sv){
+ sv.status='done';sv.doneDay=S.day;
+ const line=lineOf(sv.lineId),train=trainOf(sv.trainUid),m=modelOf(train.modelId);
+ let lf=lfBase()+0.02*COMMS.reduce((s,c)=>s+(S.comm[c.id]||0),0)+(S.holiday?0.15:0);
+ if(sv.late)lf-=0.08;
+ lf=Math.max(0.30,Math.min(0.98,lf));
+ const pax=Math.floor(m.seats*lf);initOps();S.ops.totalPax+=pax;
+ const rev=line.len*m.rate*pax+commBonusPerPax()*pax;
+ let comp=0;
+ if(sv.delay>15){comp=Math.round(rev*0.1);S.cash-=comp;S.stats.cost+=comp;}
+ S.cash+=rev;S.stats.income+=rev;S.stats.trips++;
+ S.stats.arrived++;if(sv.delay<=10)S.stats.onTime++;
+ train.freeAt=sv.arriveAbs+90;
+ const onTime=sv.delay<=10;
+ toast('🚄 '+sv.code+' '+line.stations[0]+' → '+line.stations[line.stations.length-1]+
+  ' 到达，载客 '+pax+' 人，票务+商业收益 <b>'+fmtY(rev)+'</b>'+(comp?('（晚点赔付 -'+fmt(comp)+'）'):''),
+  onTime?'ok':'');
+ save();
+}
+function newDay(){
+ S.services.forEach(sv=>{if(sv.status==='done'){sv.status='wait';sv.late=false;sv.delay=0;}});
+ // 每日固定成本
+ let cost=0;
+ S.staff.forEach(s=>{const r=ROLES.find(r=>r.id===s.role);cost+=r.salary/30;});
+ LINES.forEach(l=>{if(S.lines[l.id])cost+=l.len*120;}); // 线路维护
+ S.trains.forEach(t=>{cost+=modelOf(t.modelId).maint;});
+ if(S.loans>0){const it=S.loans*0.0004;cost+=it;}
+ S.yesterday={...S.stats};S.stats={income:0,cost:0,trips:0,onTime:S.stats.onTime,arrived:S.stats.arrived};
+ S.cash-=cost;S.stats.cost+=cost;
+ S.holiday=Math.random()<0.18;
+ toast('📅 第 '+S.day+' 天开始：昨日收入 <b>'+fmtY(S.yesterday.income)+'</b>，成本 '+fmtY(S.yesterday.cost)+
+  (S.holiday?' ｜ <b>节假日客流高峰！上座率提升</b>':''));
+ if(Math.random()<0.12&&S.trains.length>0){
+  const t=S.trains[Math.floor(Math.random()*S.trains.length)];
+  t.freeAt=Math.max(t.freeAt,S.T+180);
+  toast('🔧 '+modelOf(t.modelId).name+' 进入临检，停运 3 小时','bad');
+ }
+ save();
+}
+
+/* ================= 界面框架 ================= */
+let curTab='ov',modalOpen=false;
+function renderTabs(){
+ $('tabs').innerHTML=TABS.map(t=>
+  '<button class="'+(curTab===t[0]?'on':'')+'" onclick="switchTab(\''+t[0]+'\')"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>').join('');
+}
+function switchTab(t){curTab=t;renderTabs();renderView();}
+function renderClock(){
+ $('dayN').textContent=S.day;document.querySelectorAll('.speed button').forEach(b=>b.classList.toggle('on',Number(b.dataset.s)===S.speed));
+ const h=String(Math.floor(S.T%1440/60)).padStart(2,'0'),m2=String(S.T%60).padStart(2,'0');
+ $('timeStr').textContent=h+':'+m2+(S.holiday?' 🎉':'');
+ const cb=$('cashBox');cb.classList.toggle('neg',S.cash<0);
+ $('cashV').textContent=fmt(S.cash);
+}
+function renderView(){
+ if(modalOpen)return;
+ const fns={ov:renderOV,ln:renderLN,fl:renderFL,sv:renderSV,hr:renderHR,cm:renderCM};
+ $('view').innerHTML=fns[curTab]();
+}
+setInterval(()=>{
+ if(!S||saveLocked)return;
+ tick();
+ if(!modalOpen) renderView();
+},500);
+setInterval(save,8000);
+
+/* ================= 概览 ================= */
+function renderOV(){
+ const yd=S.yesterday||{income:0,cost:0,trips:0};
+ const running=S.services.filter(s=>s.status==='running').length;
+ const wait=S.services.filter(s=>s.status==='wait').length;
+ const built=LINES.filter(l=>S.lines[l.id]).length;
+ const punc=S.stats.arrived?Math.round(S.stats.onTime/S.stats.arrived*100):100;
+ let mon=S.services.filter(s=>s.status==='running'||s.status==='wait').map(sv=>{
+  const line=lineOf(sv.lineId),train=trainOf(sv.trainUid),m=train?modelOf(train.modelId):null;
+  let mid='';
+  if(sv.status==='running'){
+   const pct=Math.min(100,Math.max(0,(S.T-sv.depAbs)/(sv.arriveAbs-sv.depAbs)*100));
+   mid='<div class="prog"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+
+    '<div class="small flex"><span>'+line.stations[0]+' ⟶ '+line.stations[line.stations.length-1]+'</span>'+
+    (sv.delay>0?'<span class="tag r">晚点 '+sv.delay+' 分</span>':'<span class="tag g">正点运行</span>')+
+    '<span class="tag gr">'+m.name.split('（')[0]+'</span></div>';
+  }else{
+   mid='<div class="small">候车中 · 计划 '+String(Math.floor(sv.depMin/60)).padStart(2,'0')+':'+String(sv.depMin%60).padStart(2,'0')+' 发车（'+line.name+'）</div>';
+  }
+  return '<div class="row"><div class="top"><b>'+sv.code+'</b><span class="tag b">直达</span>'+
+   (sv.status==='running'?'<span class="tag g">正在运行</span>':'<span class="tag a">候车</span>')+
+   '<span style="margin-left:auto" class="small">预计收益 '+fmtY(line.len*modelOf(train.modelId).rate*modelOf(train.modelId).seats*0.7)+'</span></div>'+mid+'</div>';
+ }).join('');
+ if(!mon)mon='<div class="empty">暂无运行中的班次，去「班次」页开行第一趟列车吧 🚉</div>';
+ return `
+ <div class="grid">
+  <div class="card"><h4>集团净资产 🏅</h4><div class="big">${fmtY(netAssets())}</div><div class="small">现金资产：${fmtY(S.cash)} · 贷款 ${fmt(S.loans)}</div></div>
+  <div class="card"><h4>今日累计收入 ↗</h4><div class="big pos">${fmtY(S.stats.income)}</div><div class="small">运输收入：${S.stats.trips} 人次班次 · 昨日 ${fmtY(yd.income)}</div></div>
+  <div class="card"><h4>今日运营成本 ↘</h4><div class="big neg">${fmtY(S.stats.cost)}</div><div class="small">含电力、线网、折旧与员工薪酬</div></div>
+  <div class="card"><h4>今日净利润 📈</h4><div class="big ${S.stats.income-S.stats.cost>=0?'pos':'neg'}">${fmtY(S.stats.income-S.stats.cost)}</div><div class="small">${S.speed===0?'⏸ 已暂停 · 实时结算中':'● 实时运营结算中'}</div></div>
+  <div class="card"><h4>列车车队 🚄</h4><div class="big">${S.trains.length} 列</div><div class="small">${running} 列正在运行中</div></div>
+  <div class="card"><h4>已通线路 🗺️</h4><div class="big blue">${built} / ${LINES.length} 条</div><div class="small">覆盖主要经济干线</div></div>
+  <div class="card"><h4>运营班次 🕐</h4><div class="big">${S.services.length} 班</div><div class="small">运行中 ${running} · 候车 ${wait}</div></div>
+  <div class="card"><h4>在职员工 👥</h4><div class="big">${S.staff.length} 人</div><div class="small">月度总薪酬 ${fmtY(S.staff.reduce((s,x)=>s+ROLES.find(r=>r.id===x.role).salary,0))} · 全日准点率 <b class="${punc>=85?'pos':punc>=60?'amber':'neg'}">${punc}%</b></div></div>
+ </div>
+ <div class="sect">实时高铁运行状态监控 <button class="btn sec sm" onclick="switchTab('sv')">查看全部班次 →</button></div>
+ <div class="list">${mon}</div>`;
+}
+
+/* ================= 线路 ================= */
+function renderLN(){
+ return `
+ <div class="card" style="margin-bottom:14px">
+  <h4 style="font-size:15px;color:var(--ink);font-weight:800">全国高速铁路干线网络规划与工程建设</h4>
+  <div class="small" style="margin-top:8px;line-height:1.8">建设并运营“八纵八横”高速铁路核心通道。线路开通投资根据设计时速、工程长度、地质复杂性及枢纽等级严格核算；可通过客运营票、银行贷款筹集建设资金。</div>
+ </div>
+ <div class="list">${LINES.map(l=>{
+  const built=!!S.lines[l.id];
+  return `<div class="row">
+   <div class="top"><span class="name">${l.name}</span><span class="tag gr">${l.code}</span>
+    <span style="margin-left:auto" class="tag ${built?'g':'a'}">${built?'运营中':'待开通'}</span></div>
+   <div class="meta">设计时速：<b>${l.speed} km/h</b> ｜ 全线长度：<b>${l.len.toLocaleString()} km</b> ｜ 建设投资：<b>${fmtY(l.cost)}</b> ｜ 日均维护：<b>${fmtY(l.len*120)}</b></div>
+   <div class="stations">${l.stations.map(s=>'<span class="st">'+s+'</span>').join('<span class="st" style="border:0;background:none">—</span>')}</div>
+   ${built?'':'<div class="flex" style="margin-top:10px"><button class="btn sm" onclick="buildLine(\''+l.id+'\')">🚧 投资建设（'+fmtY(l.cost)+'）</button></div>'}
+  </div>`;
+ }).join('')}</div>`;
+}
+function buildLine(id){
+ const l=lineOf(id);
+ if(S.lines[id])return;
+ if(S.cash<l.cost){toast('❌ 资金不足，可先申请银行贷款','bad');return;}
+ S.cash-=l.cost;S.lines[id]=true;
+ toast('🎉 '+l.name+' 建成通车！全线 '+l.len.toLocaleString()+' km','ok');
+ save();renderView();
+}
+
+/* ================= 车队 ================= */
+function renderFL(){
+ const rows=S.trains.map(t=>{
+  const m=modelOf(t.modelId);
+  const busy=t.freeAt>S.T;
+  const svc=S.services.filter(s=>s.trainUid===t.uid).length;
+  return `<div class="row"><div class="top"><span class="name">${m.name}</span>
+   <span class="tag ${BRANDS[m.brand].color==='r'?'r':BRANDS[m.brand].color==='b'?'b':'g'}">${BRANDS[m.brand].name}</span>
+   <span style="margin-left:auto" class="tag ${busy?'a':'g'}">${busy?'运用/检修中':'备用'}</span></div>
+   <div class="meta">最高 ${m.speed} km/h · 定员 ${m.seats} 人 · 票价率 ${m.rate} 元/人km · 日维护 ${fmtY(m.maint)} · 担当班次 ${svc} 个</div>
+   <div class="flex" style="margin-top:8px">
+    <button class="btn sec sm" onclick="sellTrain(${t.uid})">退役出售（${fmtY(m.price*0.6)}）</button>
+   </div></div>`;
+ }).join('');
+ return `<div class="flex" style="margin-bottom:12px"><button class="btn" onclick="openBuy()">🛒 购置新车组</button>
+  <span class="small">车队规模 ${S.trains.length} 列 · 总日维护 ${fmtY(S.trains.reduce((s,t)=>s+modelOf(t.modelId).maint,0))}</span></div>
+  <div class="list">${rows||'<div class="empty">尚无车辆</div>'}</div>`;
+}
+function openBuy(){
+ let sel='';
+ modalOpen=true;
+ let brandHtml='';
+ Object.keys(BRANDS).forEach(b=>{
+  const br=BRANDS[b];
+  brandHtml+='<div class="sect" style="margin-top:6px">'+br.name+' <span class="tag gr">'+br.en+'</span></div>';
+  brandHtml+='<div class="small" style="margin-bottom:4px">'+br.desc+'</div>';
+  MODELS.filter(m=>m.brand===b).forEach(m=>{
+   brandHtml+='<div class="opt" id="mo_'+m.id+'" onclick="pickModel(\''+m.id+'\')">'
+    +'<div class="flex"><b>'+m.name+'</b><span class="tag b" style="margin-left:auto">'+m.speed+' km/h</span></div>'
+    +'<div class="small" style="margin-top:5px">定员 '+m.seats+' 人 ｜ 售价 <b class="neg">'+fmtY(m.price)+'</b> ｜ 日维护 '+fmtY(m.maint)+' ｜ 票价率 '+m.rate+' 元/人km</div>'
+    +'</div>';
+  });
+ });
+ $('modalRoot').innerHTML='<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">'
+  +'<h3>🛒 购置新动车组 / 机车 <button class="x" onclick="closeModal()">✕</button></h3>'
+  +brandHtml
+  +'<div id="buyFoot" style="margin-top:14px"></div>'
+  +'</div></div>';
+ window.pickModel=function(id){
+  sel=id;
+  MODELS.forEach(m=>{const el=$('mo_'+m.id);if(el)el.classList.toggle('sel',m.id===id);});
+  const m=modelOf(id);
+  $('buyFoot').innerHTML=`<button class="btn" style="width:100%" onclick="doBuy('${id}')">确认购置（${fmtY(m.price)}）</button>`;
+ };
+}
+function doBuy(id){
+ const m=modelOf(id);
+ if(S.cash<m.price){toast('❌ 资金不足，可先申请银行贷款','bad');return;}
+ S.cash-=m.price;
+ S.ids.train++;
+ S.trains.push({uid:S.ids.train,modelId:id,freeAt:0});
+ toast('🎉 '+m.name+' 交付入库！','ok');
+ closeModal();save();renderView();
+}
+function sellTrain(uid){
+ const t=trainOf(uid);if(!t)return;
+ if(t.freeAt>S.T){toast('❌ 该车正担当班次运行中，无法退役','bad');return;}
+ if(S.services.some(s=>s.trainUid===uid&&s.status!=='done')){toast('❌ 该车尚有担当班次，请先删除相关班次','bad');return;}
+ const m=modelOf(t.modelId);
+ if(!confirm('确认将 '+m.name+' 退役出售？回收 '+fmtY(m.price*0.6)))return;
+ S.cash+=m.price*0.6;
+ S.trains=S.trains.filter(x=>x.uid!==uid);
+ S.services=S.services.filter(s=>s.trainUid!==uid);
+ toast('已退役出售，回收 '+fmtY(m.price*0.6));save();renderView();
+}
+
+/* ================= 班次 ================= */
+function renderSV(){
+ const order={running:0,wait:1,done:2};
+ const list=[...S.services].sort((a,b)=>order[a.status]-order[b.status]||a.depMin-b.depMin);
+ const rows=list.map(sv=>{
+  const line=lineOf(sv.lineId),train=trainOf(sv.trainUid),m=train?modelOf(train.modelId):null;
+  let chip='',body='';
+  if(sv.status==='running'){
+   const pct=Math.min(100,Math.max(0,(S.T-sv.depAbs)/(sv.arriveAbs-sv.depAbs)*100));
+   chip='<span class="tag g">运行中</span>';
+   body='<div class="prog"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="small">'+line.stations[0]+' ⟶ '+line.stations[line.stations.length-1]+
+    (sv.delay>0?' · <span class="r1">晚点 '+sv.delay+' 分</span>':' · 正点')+'</div>';
+  }else if(sv.status==='wait'){
+   chip='<span class="tag a">候车</span>'+(sv.late?'<span class="tag r">待人员/车辆</span>':'');
+   body='<div class="small">每日 '+String(Math.floor(sv.depMin/60)).padStart(2,'0')+':'+String(sv.depMin%60).padStart(2,'0')+' 自 '+line.stations[0]+' 发车 · 单程约 '+(train?Math.round(durMin(line,m)/60*10)/10:'-')+' 小时</div>';
+  }else{
+   chip='<span class="tag gr">今日已到达</span>';
+   body='<div class="small">明日 '+String(Math.floor(sv.depMin/60)).padStart(2,'0')+':'+String(sv.depMin%60).padStart(2,'0')+' 再始发</div>';
+  }
+  return `<div class="row"><div class="top"><b>${sv.code}</b><span class="tag b">直达</span><span class="tag gr">每日</span>
+   ${chip}<div style="margin-left:auto" class="flex">
+   <button class="btn red sm" onclick="delSvc('${sv.id}')">删除</button></div></div>
+   <div class="meta">${line.name} ｜ 担当：${m?m.name:'?'}</div>${body}</div>`;
+ }).join('');
+ return `<div class="flex" style="margin-bottom:12px">
+  <button class="btn" onclick="openSvc()">＋ 新增班次</button>
+  <span class="small">共 ${S.services.length} 个日常班次 · 准点率受地勤与检修力量影响</span></div>
+  <div class="list">${rows||'<div class="empty">还没有开行班次，点击上方按钮创建 🚄</div>'}</div>`;
+}
+function openSvc(){
+ modalOpen=true;
+ const lines=LINES.filter(l=>S.lines[l.id]);
+ if(!lines.length){toast('❌ 请先建设一条线路','bad');modalOpen=false;return;}
+ $('modalRoot').innerHTML=`<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">
+  <h3>🕐 新增日常班次 <button class="x" onclick="closeModal()">✕</button></h3>
+  <label class="lb">选择线路（已通车）</label>
+  <select id="svcLine">${lines.map(l=>`<option value="${l.id}">${l.name}（${l.len} km / ${l.speed}km/h）</option>`).join('')}</select>
+  <label class="lb">担当车组（须空闲且无时间冲突）</label>
+  <select id="svcTrain">${S.trains.map(t=>`<option value="${t.uid}">${modelOf(t.modelId).name} · ${t.uid<10?'UT-0':'UT-'+t.uid}</option>`).join('')}</select>
+  <label class="lb">发车时刻（24小时制）</label>
+  <input id="svcTime" type="time" value="09:00">
+  <div class="small" style="margin-top:10px;line-height:1.7">提示：同一车组可在不同时段担当多个班次，发车时会自动检查车辆回库时间与司机/乘务配备；高铁班次需<b>高速动车司机</b>，普速需<b>普速火车司机</b>，乘务员按定员/300 配备。</div>
+  <div style="margin-top:16px"><button class="btn" style="width:100%" onclick="doSvc()">确认开行</button></div>
+ </div></div>`;
+ window.doSvc=function(){
+  const lineId=$('svcLine').value,uid=parseInt($('svcTrain').value);
+  const tv=$('svcTime').value.split(':');
+  const depMin=parseInt(tv[0])*60+parseInt(tv[1]);
+  const line=lineOf(lineId),train=trainOf(uid);if(!train){toast('请先购置车组','bad');return;}const m=modelOf(train.modelId);
+  if(!train||!Number.isFinite(depMin)){toast('请选择车组和有效时刻','bad');return;}
+  const d=durMin(line,m);
+  // 冲突检查：同一车组在其他班次的 [dep, dep+dur+60] 区间
+  for(const sv of S.services){
+   if(sv.trainUid!==uid)continue;
+   const ol=lineOf(sv.lineId),om=modelOf(trainOf(sv.trainUid).modelId);
+   const a1=sv.depMin,a2=sv.depMin+durMin(ol,om)+90,b1=depMin,b2=depMin+d+90;
+   if([-1440,0,1440].some(offset=>b1<a2+offset&&a1+offset<b2)){toast('❌ 该车组时刻冲突，请更换车组或调整时刻','bad');return;}
+  }
+  S.ids.svc++;
+  const code=(m.speed>=300?'G':m.speed>=200?'D':'K')+S.ids.svc;
+  S.services.push({id:'sv'+S.ids.svc,code,lineId,trainUid:uid,depMin,depDay:-1,status:'wait',late:false,delay:0});
+  toast('✅ '+code+' 次列车已加入运行图（'+line.name+'）','ok');
+  closeModal();save();renderView();
+ };
+}
+function delSvc(id){
+ if(S.services.some(x=>x.id===id&&x.status==='running')){toast('运行中的列车须到达后再移除','bad');return;}
+ S.services=S.services.filter(s=>s.id!==id);
+ toast('班次已从运行图移除');save();renderView();
+}
+
+/* ================= 员工 ================= */
+function renderHR(){
+ const monthly=S.staff.reduce((s,x)=>s+ROLES.find(r=>r.id===x.role).salary,0);
+ const cards=ROLES.map(r=>`<div class="card"><h4>${r.name}</h4><div class="big">${staffCount(r.id)} <span style="font-size:13px;color:var(--sub)">人</span></div><div class="small">${r.desc}</div></div>`).join('');
+ const rows=[...S.staff].sort((a,b)=>a.role.localeCompare(b.role)).map(p=>{
+  const r=ROLES.find(r=>r.id===p.role);
+  const eff=p.eff||(p.eff=100+Math.floor(Math.random()*20));
+  return `<div class="row"><div class="top">
+   <div style="width:38px;height:38px;border-radius:50%;background:var(--green-bg);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:800">${p.name[0]}</div>
+   <div><b>${p.name}</b><div class="small">${r.name} · ${p.id<10?'staff-0':'staff-'+p.id}</div></div>
+   <span class="tag ${r.id==='hdriver'?'b':r.id==='engineer'?'a':'g'}" style="margin-left:auto">${r.name}</span></div>
+   <div class="kv"><span>薪资水平</span><b>★★★ 等级 ${1+eff%3}</b></div>
+   <div class="kv"><span>月薪</span><b class="neg">${fmtY(r.salary)}/月</b></div>
+   <div class="kv"><span>入职日期</span><b>第 ${p.hiredDay} 天</b></div>
+   <div class="kv"><span>工作效率</span><b class="pos">${eff}%</b></div>
+   <div class="flex" style="justify-content:flex-end;margin-top:6px"><button class="btn red sm" onclick="fire(${p.id})">解除聘雇</button></div>
+  </div>`;
+ }).join('');
+ return `<div class="card" style="margin-bottom:14px">
+  <div class="flex" style="justify-content:space-between">
+   <div><b style="font-size:15px">人力资源与专业乘务管理</b><div class="small" style="margin-top:6px;line-height:1.7">高铁安全运行需配备合格司机、乘务及地勤人员；每月固定发放薪资。人员不足时班次将晚点甚至停运。</div>
+   <div class="small" style="margin-top:4px">月度总薪酬：<b class="neg">${fmtY(monthly)}</b></div></div>
+   <button class="btn" onclick="openHire()">👥 招募新员工</button>
+  </div></div>
+  <div class="grid" style="margin-bottom:14px">${cards}</div>
+  <div class="sect">员工名册</div><div class="list">${rows}</div>`;
+}
+function openHire(){
+ modalOpen=true;
+ $('modalRoot').innerHTML=`<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">
+  <h3>👥 招募新员工 <button class="x" onclick="closeModal()">✕</button></h3>
+  ${ROLES.map(r=>`<div class="opt" onclick="doHire('${r.id}')"><div class="flex"><b>${r.name}</b>
+   <span class="tag a" style="margin-left:auto">${fmtY(r.salary)}/月</span></div>
+   <div class="small" style="margin-top:4px">${r.desc}</div></div>`).join('')}
+ </div></div>`;
+ window.doHire=function(rid){
+  const r=ROLES.find(x=>x.id===rid);
+  const name=SURN[Math.floor(Math.random()*SURN.length)]+GIVEN[Math.floor(Math.random()*GIVEN.length)];
+  S.ids.staff++;
+  S.staff.push({id:S.ids.staff,name,role:rid,hiredDay:S.day});
+  toast('✅ 已招募 '+r.name+' '+name,'ok');
+  closeModal();save();renderView();
+ };
+}
+function fire(id){
+ const p=S.staff.find(x=>x.id===id);if(!p)return;
+ if(!confirm('确认解除 '+p.name+' 的聘雇？'))return;
+ S.staff=S.staff.filter(x=>x.id!==id);
+ toast(p.name+' 已离职');save();renderView();
+}
+
+/* ================= 商业 ================= */
+function renderCM(){
+ const rows=COMMS.map(c=>{
+  const lv=S.comm[c.id]||0;
+  const upCost=c.cost*(lv+1);
+  return `<div class="row"><div class="top">
+   <div style="font-size:22px">${c.icon}</div>
+   <div><b>${c.name}</b><div class="small">${c.desc}</div></div>
+   <span class="tag g" style="margin-left:auto">Lv.${lv}</span></div>
+   <div class="kv" style="margin-top:8px"><span>单客增收</span><b class="pos">+${c.per*lv} 元 / 乘客</b></div>
+   ${lv>=5?'<div class="small" style="margin-top:6px">已达到最高等级 ⭐</div>':
+   `<div class="flex" style="margin-top:8px;justify-content:space-between">
+     <span class="small">扩建升级费用：<b class="neg">${fmtY(upCost)}</b></span>
+     <button class="btn sm" onclick="upComm('${c.id}')">⬆ 升级扩建（Lv.${lv+1}）</button></div>`}
+  </div>`;
+ }).join('');
+ const per=commBonusPerPax();
+ return `<div class="card" style="margin-bottom:14px">
+  <b style="font-size:15px">🛍️ 高铁多元化非票商业开发中心</b>
+  <div class="small" style="margin-top:8px;line-height:1.8">通过建设智能餐车厨房、升级商务座VIP休息厅、开拓车载数智广告与站区商铺零售等，持续提升单客创收能力。当前每乘客额外收入：<b class="pos">+${per} 元</b>。</div>
+ </div><div class="list">${rows}</div>`;
+}
+function upComm(id){
+ const c=COMMS.find(x=>x.id===id),lv=S.comm[id]||0;
+ if(lv>=5){toast('已达最高等级');return;}
+ const cost=c.cost*(lv+1);
+ if(S.cash<cost){toast('❌ 资金不足','bad');return;}
+ S.cash-=cost;S.comm[id]=lv+1;
+ toast('🎉 '+c.name+' 升级至 Lv.'+(lv+1)+'，单客增收 +'+(c.per*(lv+1))+' 元','ok');
+ save();renderView();
+}
+
+/* ================= 财务 ================= */
+function openFinance(){
+ modalOpen=true;
+ window.doLoan=function(amt){
+  const cap=Math.max(5e8,netAssets()*2);
+  if(S.loans+amt>cap){toast('❌ 超出授信额度（授信 '+fmtY(cap)+'）','bad');return;}
+  S.loans+=amt;S.cash+=amt;
+  toast('🏦 贷款 '+fmtY(amt)+' 到账，日利率 0.04%','ok');
+  save();openFinance();renderClock();
+ };
+ window.doRepay=function(amt){
+  amt=Math.min(amt,S.loans,S.cash);
+  if(amt<=0){toast('❌ 无可还款项或现金不足','bad');return;}
+  S.loans-=amt;S.cash-=amt;
+  toast('已偿还贷款 '+fmtY(amt),'ok');
+  save();openFinance();renderClock();
+ };
+ window.doReset=function(){
+  if(confirm('确认清空存档并重新开始？此操作不可恢复！')){localStorage.setItem(KEY+'_before_reset',JSON.stringify(S));S=newState();S.speed=0;save();closeModal();renderClock();renderView();}
+ };
+ $('modalRoot').innerHTML=`<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">
+  <h3>🏦 集团财务中心 <button class="x" onclick="closeModal()">✕</button></h3>
+  <div class="kv"><span>集团净资产</span><b>${fmtY(netAssets())}</b></div>
+  <div class="kv"><span>现金余额</span><b class="${S.cash<0?'neg':'pos'}">${fmtY(S.cash)}</b></div>
+  <div class="kv"><span>未偿贷款</span><b class="neg">${fmtY(S.loans)}</b></div>
+  <div class="kv"><span>授信额度</span><b>${fmtY(Math.max(5e8,netAssets()*2))}</b></div>
+  <label class="lb">银行贷款（日利率 0.04%，每日自动计息）</label>
+  <div class="flex"><button class="btn blue sm" onclick="doLoan(1e8)">借入 1 亿</button>
+  <button class="btn blue sm" onclick="doLoan(5e8)">借入 5 亿</button>
+  <button class="btn sec sm" onclick="doRepay(1e8)">偿还 1 亿</button>
+  <button class="btn sec sm" onclick="doRepay(1e12)">全部还清</button></div>
+  <div class="small" style="margin-top:12px">提示：贷款用于线路建设与车队扩张，靠票务与商业收益滚动偿还。</div>
+  <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+  <button class="btn red sm" onclick="doReset()">🗑 清空存档，重新开始</button>
+ </div></div>`;
+}
+function closeModal(){modalOpen=false;$('modalRoot').innerHTML='';}
+
+function todMinutes(){return S.T%1440;}
+function initOps(){if(!S.ops)S.ops={rep:70,totalPax:0,profit:0,claimed:[],case:0,caseDay:0,fare:'normal',log:['总经理履新：京津城际已通车，先安排第一趟列车。'],ending:false};}
+const FARES={value:{label:'惠民票价',rate:.82,load:.14},normal:{label:'标准票价',rate:1,load:0},premium:{label:'商务票价',rate:1.2,load:-.12}};
+const rawLf=lfBase;lfBase=function(){initOps();return rawLf()+FARES[S.ops.fare].load+(S.ops.rep-70)/250;};
+const rawArrive=arrive;arrive=function(sv){initOps();const before=S.cash;rawArrive(sv);const gain=S.cash-before,extra=gain*(FARES[S.ops.fare].rate-1);S.cash+=extra;S.stats.income+=extra;S.ops.profit+=gain+extra;S.ops.rep=Math.max(0,Math.min(100,S.ops.rep+(sv.delay>15?-2:1)));save();};
+const rawDay=newDay;newDay=function(){rawDay();initOps();S.ops.rep=Math.max(0,S.ops.rep-(S.cash<0?5:0));if(S.cash< -5e7&&!S.ops.ending){S.ops.ending='restructure';save();openEnding();}};
+const oldOV=renderOV,oldLN=renderLN,oldFL=renderFL,oldHR=renderHR;
+const GOALS=[
+ ['首班启程','安排一趟班次并完成运输',()=>S.stats.arrived>=1,2e6],
+ ['织密运行图','安排3个班次，准备2列车组',()=>S.services.length>=3&&S.trains.length>=2,4e6],
+ ['第二条走廊','开通第二条线路',()=>Object.keys(S.lines).filter(k=>S.lines[k]).length>=2,1e7],
+ ['服务先行','地勤与工程师各达到3人',()=>staffCount('ground')>=3&&staffCount('engineer')>=3,3e6],
+ ['车站新生活','三项商业设施均达到3级',()=>COMMS.every(c=>S.comm[c.id]>=3),7e6],
+ ['区域运营商','车队达到5列，班次达到8趟',()=>S.trains.length>=5&&S.services.length>=8,2e7],
+ ['客流回归','累计服务2万名旅客',()=>S.ops.totalPax>=20000,2e7],
+ ['经营公信力','完成8个决策，声誉达到85',()=>S.ops.case>=8&&S.ops.rep>=85,1e7],
+ ['跨区联网','开通4条线路，车队8列',()=>Object.values(S.lines).filter(Boolean).length>=4&&S.trains.length>=8,3e7],
+ ['经营委员会','完成16个经营决策',()=>S.ops.case>=16,2e7],
+ ['路网成形','开通6条线路，累计运输5万人',()=>Object.values(S.lines).filter(Boolean).length>=6&&S.ops.totalPax>=50000,5e7],
+ ['铁路长歌','24项决策全部完成，保持正现金',()=>S.ops.case>=24&&S.cash>0,1e8]
+];
+const CASES=[
+ ['首发票价','新区通勤客希望降低出行成本，商务乘客更在意车厢服务。','推出通勤优惠，声誉+5，支出100万',1e6,5,'保持票价，投放宣传，声誉+2，支出30万',3e5,2],
+ ['站台雨棚','暴雨天有旅客在换乘通道淋雨。','整修通道，声誉+6，支出180万',1.8e6,6,'提供雨具，声誉+2，支出20万',2e5,2],
+ ['检修窗口','工程师希望安排一次集中检修，短时停运会影响营收。','投入备用器材，声誉+5，支出240万',2.4e6,5,'改为夜间轮检，声誉+1，支出40万',4e5,1],
+ ['旅游专列','城市文旅局邀请联合推广，但需承担服务投入。','打造联名服务，声誉+5，支出150万',1.5e6,5,'仅调整广播导览，声誉+1，支出15万',1.5e5,1],
+ ['餐车供应','本地小店与连锁供应商竞标餐车合同。','支持本地风味，声誉+4，支出120万',1.2e6,4,'采用标准套餐，获得80万，声誉-2',-8e5,-2],
+ ['适老出行','社区提出增加适老指引和人工服务。','完善无障碍服务，声誉+7，支出200万',2e6,7,'安排志愿指引，声誉+2，支出25万',2.5e5,2],
+ ['广告争议','商业团队希望增加车厢广告频次。','保留安静空间，声誉+4，支出60万',6e5,4,'接入更多广告，获得160万，声誉-5',-1.6e6,-5],
+ ['春运方案','返乡高峰将至，需要临时保障资源。','安排应急服务，声誉+7，支出300万',3e6,7,'优化既有组织，声誉+2，支出60万',6e5,2],
+ ['人才培养','新司机需要模拟器训练，老员工希望带教补贴。','采购模拟器，声誉+5，支出360万',3.6e6,5,'实行师徒计划，声誉+3，支出80万',8e5,3],
+ ['静音车厢','旅客对长途静音车厢提出需求。','改造隔音设施，声誉+5，支出220万',2.2e6,5,'增加乘务劝导，声誉+2，支出30万',3e5,2],
+ ['联程协作','周边公交希望与铁路建立联程接驳。','共建接驳站，声誉+6，支出450万',4.5e6,6,'只上线时刻指引，声誉+2，支出40万',4e5,2],
+ ['暑期研学','学校申请组织铁路研学活动。','开放检修科普区，声誉+6，支出240万',2.4e6,6,'推出线上课程，声誉+2，支出35万',3.5e5,2],
+ ['能源选择','能耗审计发现机车待机时间偏长。','建设智能能源系统，声誉+4，支出500万',5e6,4,'优化启停流程，声誉+2，支出70万',7e5,2],
+ ['遗失行李','旅客遗失了重要行李，流程效率受到质疑。','建统一寻物中心，声誉+6，支出200万',2e6,6,'增设人工热线，声誉+3，支出50万',5e5,3],
+ ['区域招商','新城站招商可以引入精品店或大众餐饮。','提供平价商铺，声誉+5，支出160万',1.6e6,5,'签精品店长约，获得350万，声誉-3',-3.5e6,-3],
+ ['调度升级','线路增加后，手工运行图逐渐吃力。','投入调度培训，声誉+5，支出600万',6e6,5,'先做流程审计，声誉+2，支出90万',9e5,2],
+ ['车厢焕新','旧车组座椅磨损，旅客期待更舒适的体验。','全面更换座椅，声誉+6，支出450万',4.5e6,6,'分批修复翻新，声誉+2，支出100万',1e6,2],
+ ['绿色站房','站房有条件安装屋顶光伏。','投入绿色改造，声誉+5，支出700万',7e6,5,'先改照明节能，声誉+2，支出110万',1.1e6,2],
+ ['乡村直通','偏远地区希望得到更清楚的购票引导。','设流动服务站，声誉+7，支出260万',2.6e6,7,'制作多语指南，声誉+3，支出65万',6.5e5,3],
+ ['夜间保障','长途列车夜间到达，需要更多接驳保障。','联合夜间公交，声誉+6，支出400万',4e6,6,'增设候车休息区，声誉+3，支出120万',1.2e6,3],
+ ['公众开放日','集团首次邀请公众参观铁路运营。','开放调度体验，声誉+5，支出320万',3.2e6,5,'举办线上直播，声誉+2，支出80万',8e5,2],
+ ['枢纽扩容','换乘人数增加，枢纽站出现拥堵。','增设换乘通道，声誉+7，支出900万',9e6,7,'调整单向流线，声誉+3，支出150万',1.5e6,3],
+ ['服务评选','行业评选邀请集团提交服务创新方案。','整合全部服务，声誉+6，支出500万',5e6,6,'聚焦准点服务，声誉+3，支出130万',1.3e6,3],
+ ['下一站远方','董事会最后讨论：利润与公共服务，哪个是长远方向？','保留公共服务预算，声誉+8，支出1000万',1e7,8,'建立稳健现金储备，获得500万，声誉-3',-5e6,-3]
+];
+function safeLog(msg){S.ops.log.unshift(msg);S.ops.log=S.ops.log.slice(0,12);}
+function hero(title,sub,img='terminal'){return `<div class="dispatch"><img src="assets/${img}.webp" width="960" height="320" alt="${img==='terminal'?'城市铁路站台':img==='mountain'?'山间铁路高架':'夜间动车检修所'}" onerror="this.style.visibility='hidden'"><div class="dispatch-copy"><span class="eyebrow">RAILWAY OPERATIONS / 207</span><h1>${title}</h1><p>${sub}</p></div><div class="dispatch-actions"><button class="btn" onclick="quickDispatch()">＋ 安排首发 / 班次</button><button class="btn sec" onclick="openGoals()">经营目标 ↗</button></div></div>`;}
+renderOV=function(){initOps();const n=S.ops.claimed.length,next=GOALS.find((g,i)=>!S.ops.claimed.includes(i));return hero('下一站，由你决定','从京津城际出发，把一列车开成一张网。')+`<div class="ticket"><span class="seal">${String(n).padStart(2,'0')}</span><div><b>${next?next[0]:'全国路网已启程'}</b><p>${next?next[1]:'继续经营，尝试不同票价与车队组合。'}</p></div><button class="btn sec sm" onclick="openGoals()">查看</button></div><div class="mini-metrics"><div>服务声誉<b>${S.ops.rep} / 100</b></div><div>经营议题<b>${S.ops.case} / 24</b></div><div>累计客流估算<b>${fmt(S.ops.totalPax).replace(' 元','人').replace(' 万','万人')}</b></div></div><div class="flex" style="margin-bottom:10px"><button class="btn" onclick="openCase()">✉ 经营决策${S.ops.case<24?' · 待办':' · 已完成'}</button><button class="btn sec" onclick="openPolicy()">${FARES[S.ops.fare].label} / 调整</button></div>`+oldOV();};
+renderLN=function(){return `<div class="network"><h3>干线调度图 <span class="signal"><i></i> 点选线路查看 / 建设</span></h3><div class="net-lines">${LINES.map((l,i)=>`<button class="net-line ${S.lines[l.id]?'built':''}" onclick="openLine('${l.id}')"><b>● ${l.name.replace('铁路','')}</b><em>${S.lines[l.id]?'已开通':'规划中'} · ${l.len} km</em></button>`).join('')}</div></div>`+`<img class="scene-small" src="assets/mountain.webp" width="960" height="320" alt="铁路穿行山间高架">`+oldLN();};
+renderFL=function(){return '<img class="scene-small" src="assets/depot.webp" width="960" height="320" alt="夜间动车检修所">'+oldFL();};
+function showModal(title,body){modalOpen=true;$('modalRoot').innerHTML=`<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal"><h3>${title}<button class="x" aria-label="关闭" onclick="closeModal()">×</button></h3>${body}</div></div>`;}
+function openLine(id){const l=lineOf(id);showModal(l.name,`<img class="scene-small" src="assets/mountain.webp" alt="山间铁路"><p class="small">${l.stations.join(' → ')}</p><div class="kv"><span>长度 / 设计时速</span><b>${l.len} km / ${l.speed} km/h</b></div><div class="kv"><span>建设投资</span><b>${fmtY(l.cost)}</b></div><div class="kv"><span>每日维护</span><b>${fmtY(l.len*120)}</b></div><p class="small">建设会一次性扣款，线路需配车并排班后才有收入。</p><button class="btn" style="width:100%;margin-top:15px" onclick="${S.lines[id]?"closeModal();switchTab('sv')":"buildLine('"+id+"');if(S.lines['"+id+"']){closeModal();renderView()}"}">${S.lines[id]?'前往安排列车':'确认建设'}</button>`);}
+function openPolicy(){initOps();showModal('票价策略',`<p class="small">低价提高上座率，商务定价提高每趟收入但减少客流。票价策略在到站结算时生效，随时可调整。</p>${Object.entries(FARES).map(([k,f])=>`<div class="opt" onclick="S.ops.fare='${k}';save();openPolicy()"><b>${S.ops.fare===k?'● ':''}${f.label}</b><p class="small">收入倍率 ${f.rate} · 基础上座率 ${f.load>=0?'+':''}${Math.round(f.load*100)}%</p></div>`).join('')}`);}
+function openGoals(){initOps();showModal('经营里程碑',GOALS.map((g,i)=>`<div class="goal"><b>${i+1}. ${g[0]} ${S.ops.claimed.includes(i)?'✓':''}</b><p>${g[1]} · 奖励 ${fmtY(g[3])}</p><button class="btn sm" ${S.ops.claimed.includes(i)||!g[2]()?'disabled':''} onclick="claimGoal(${i})">${S.ops.claimed.includes(i)?'已领取':g[2]()?'领取奖励':'继续经营'}</button></div>`).join('')+'<button class="btn sec" style="margin-top:14px" onclick="openEnding()">查看经营结局</button>');}
+function claimGoal(i){const g=GOALS[i];if(!g||S.ops.claimed.includes(i)||!g[2]())return;S.cash+=g[3];S.ops.claimed.push(i);safeLog('达成 '+g[0]+'，奖励 '+fmtY(g[3]));save();openGoals();renderClock();}
+function openCase(){initOps();if(S.ops.case>=24){showModal('经营委员会', '<p class="small">24项议题已经完成，经营选择记入日志。继续扩张路网或查看经营结局。</p><button class="btn" onclick="openEnding()">经营结局</button>');return;}if(S.ops.caseDay>S.day){showModal('等待下一次经营会议','<p class="small">本日议题已完成。可以安排班次、改善配套、调整票价；下一个运营日将收到新议题。推进时间不计入有效新增游玩时长。</p>');return;}const c=CASES[S.ops.case];showModal('经营议题 '+(S.ops.case+1)+' / 24',`<span class="tag b">${c[0]}</span><p style="line-height:1.9;margin:15px 0">${c[1]}</p><div class="policy-grid"><button class="btn sec" onclick="decideCase(0)">${c[2]}</button><button class="btn sec" onclick="decideCase(1)">${c[5]}</button></div><p class="small" style="margin-top:14px">两项方案均可推进，资金不足可返回经营后再处理。每个运营日处理一个议题。</p>`);}
+function decideCase(choice){if(S.ops.case>=24||S.ops.caseDay>S.day)return;const c=CASES[S.ops.case],cost=c[choice?6:3],rep=c[choice?7:4];if(S.cash<cost){toast('资金不足，先调整财务或选择另一方案','bad');return;}S.cash-=cost;S.ops.rep=Math.min(100,Math.max(0,S.ops.rep+rep));safeLog('第'+S.day+'天 '+c[0]+'：'+c[choice?5:2]);S.ops.case++;S.ops.caseDay=S.day+1;save();closeModal();renderClock();renderView();toast('决议已执行，现金与声誉已更新','ok');}
+function openEnding(){initOps();const won=S.ops.claimed.length===12;let title=won?(S.ops.rep>=85?'万里通途':'稳健运营'):S.cash< -5e7?'债务重整':'路网仍在生长';showModal(title,`<img class="scene-small" src="assets/${won?'mountain':'terminal'}.webp" alt="铁路旅程"><p style="line-height:1.9">${won?'你已完成所有经营目标。列车把城市连在一起，也把每一次选择留在路网上。':S.cash< -5e7?'现金已低于负五千万。你可以申请贷款、出售闲置车组继续经营，或导出存档后重新开始。':'完成12个经营里程碑后将评定最终经营结局。可以继续经营，也可以保留本次进度。'}</p><p class="small">目标 ${S.ops.claimed.length}/12 · 议题 ${S.ops.case}/24 · 声誉 ${S.ops.rep}</p><button class="btn" onclick="closeModal()">继续经营</button>`);}
+function quickDispatch(){if(S.services.length){switchTab('sv');return;}if(!S.trains.length){switchTab('fl');return;}S.ids.svc++;const dep=(S.T%1440+10)%1440;S.services.push({id:'sv'+S.ids.svc,code:'D'+S.ids.svc,lineId:'icrjj',trainUid:S.trains[0].uid,depMin:dep,depDay:-1,status:'wait',late:false,delay:0});S.speed=1;save();switchTab('sv');toast('首班已安排在10分钟后，模拟运行已开始','ok');}
+function openDesk(){showModal('管理与存档',`<p class="small">铁路规划模拟器 v1.1.0 · 进度保存在当前设备、浏览器和入口。主备入口不自动同步，切换前导出，再到新入口导入。</p><div class="policy-grid" style="margin:14px 0"><button class="btn" onclick="exportSave()">导出存档</button><label class="btn sec" style="text-align:center">导入存档<input type="file" accept="application/json,.json" style="display:none" onchange="importSave(this.files[0])"></label><button class="btn sec" onclick="openFinance()">财务与重新开始</button><button class="btn sec" onclick="openGoals()">经营目标</button></div><p class="small">操作指引：先安排班次 → 观察到站收入 → 招募人员并购买车组 → 贷款或积累现金建设新线路。每日维护与利息会扣款，线路投资不等于利润。车组到达后需90分钟周转，同车排班不能重叠。</p><h4 style="margin-top:16px">经营日志</h4>${(S.ops?.log||[]).map(x=>`<div class="log">${x}</div>`).join('')}`);}
+document.querySelectorAll('.speed button').forEach(b=>b.onclick=()=>{S.speed=Number(b.dataset.s);document.querySelectorAll('.speed button').forEach(x=>x.classList.toggle('on',x===b));save();});
+addEventListener('beforeunload',save);
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+/* ================= 启动 ================= */
+if(!load()){S=newState();S.speed=0;toast('👋 欢迎上任集团总经理！你从京津城际与一列和谐号起步，逐步打造覆盖全国的铁路集团。','ok');}
+renderTabs();renderClock();renderView();
+</script>
+</body>
+</html>
