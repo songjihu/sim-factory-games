@@ -1,6 +1,6 @@
 'use strict';
 const Engine=(()=>{
- const GAME='G204',SCHEMA=1,VERSION='1.0.0',KEY='G204.empress.save.v1',META='G204.empress.library.v1';
+ const GAME='G204',SCHEMA=1,VERSION='1.0.1',KEY='G204.empress.save.v1',META='G204.empress.library.v1';
  const clone=x=>JSON.parse(JSON.stringify(x));
  function fresh(){return{game:GAME,schema:SCHEMA,version:VERSION,node:'m0',page:0,phase:'read',result:null,route:null,stats:{power:52,bond:48,court:48,silver:44},flags:{},mandate:null,origin:'未选择',evidence:[],log:[],checkpoints:[],seen:[],revision:0,savedAt:0,startedAt:Date.now()};}
  function hash(x){let n=2166136261;for(const ch of x)n=Math.imul(n^ch.charCodeAt(0),16777619);return(n>>>0).toString(16);}
@@ -34,7 +34,7 @@ const Engine=(()=>{
  }
  const count=k=>state.flags[k]||0;
  function route(){if(count('grip')>=5)return'D';if(count('speed')>=18)return'C';if(count('joint')>=15&&state.stats.bond>=50)return'B';return'A';}
- function available(o){if(o.need&&!state.evidence.includes(o.need))return'先查验：'+STORY.items[o.need].title;if(o.cost&&state.stats.silver<o.cost)return'库银不足 '+o.cost+' 筹';return null;}
+ function available(o){if(o.need&&!state.evidence.includes(o.need))return'先查验：'+STORY.items[o.need].title;if(o.cost){const needed=o.cost+Math.max(0,-(o.fx?.silver||0))+(!o.mandate&&state.mandate!=='delegate'?1:0);if(state.stats.silver<needed)return'库银不足 '+needed+' 筹（含本次办差）';}return null;}
  function choose(i){const n=STORY.nodes[state.node],o=n.options[i];if(state.phase!=='choice'||!o||available(o))return false;return transact(()=>{const delta={};if(o.mandate)state.mandate=o.mandate;for(const[k,v]of Object.entries(o.fx||{})){const old=state.stats[k];state.stats[k]=Math.max(0,Math.min(100,old+v));delta[k]=state.stats[k]-old;}if(!o.mandate){const bonus=state.mandate==='direct'?{power:1,silver:-1}:state.mandate==='delegate'?{power:-1,court:1}:{bond:1,silver:-1};for(const[k,v]of Object.entries(bonus)){const before=state.stats[k];state.stats[k]=Math.max(0,Math.min(100,before+v));delta[k]=(delta[k]||0)+state.stats[k]-before;}}if(o.cost){state.stats.silver-=o.cost;delta.silver=(delta.silver||0)-o.cost;}for(const[k,v]of Object.entries(o.tags||{}))state.flags[k]=(state.flags[k]||0)+v;state.log.push({node:n.id,choice:i,label:o.label});state.phase='result';state.result={text:o.result,delta};});}
  function next(){const n=STORY.nodes[state.node];return transact(()=>{if(state.phase==='read'){const pages=STORY.pages(n,state);if(state.page<pages.length-1)state.page++;else state.phase=n.options.length?'choice':'ending';}else if(state.phase==='result'){if(n.next==='@route'){state.route=route();enter('end'+state.route);}else enter(typeof n.next==='function'?n.next(state):n.next);}});}
  function inspect(id){if(!STORY.items[id]||!STORY.nodes[state.node].items.includes(id))return false;return transact(()=>{if(!state.evidence.includes(id))state.evidence.push(id);});}
