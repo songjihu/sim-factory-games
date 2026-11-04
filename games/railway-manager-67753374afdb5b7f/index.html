@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>铁路规划模拟器 v1.1.0</title>
+<title>铁路规划模拟器 v1.2.0</title>
 <style>
   :root{
     --bg:#f2f5f3; --card:#ffffff; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb;
@@ -85,11 +85,15 @@ header>.btn{margin-left:auto;font-size:11px;padding:7px 9px}main{height:calc(100
 @media(min-width:760px){header{height:80px;flex-wrap:nowrap}.brand{flex:1}.dispatch img{height:245px}.dispatch{min-height:245px}.dispatch h1{font-size:34px}.grid{grid-template-columns:repeat(4,1fr)}main{height:calc(100dvh - 148px)}.net-lines{grid-template-columns:repeat(5,1fr)}.dispatch-copy{top:28px;left:25px}.dispatch-actions{left:25px;bottom:23px}}
 @media(max-height:700px){header{height:100px;padding:6px 12px;gap:3px}.brand{font-size:15px}main{height:calc(100dvh - 162px);padding:9px 10px}nav{height:62px}.dispatch,.dispatch img{height:128px;min-height:128px}.dispatch-copy{top:9px;left:12px}.dispatch h1{font-size:18px;margin:4px 0}.dispatch p{display:none}.dispatch-actions{bottom:8px;left:10px}.dispatch-actions .btn{font-size:10px;min-height:30px}.ticket{padding:8px;margin-bottom:8px}.ticket p{font-size:10px}.mini-metrics>div{padding:6px}.scene-small{height:90px}.cash{font-size:13px}.brand .ver{margin-left:3px}}
 
+
+.schedule-toolbar{position:sticky;top:-14px;z-index:4;background:#e9efedf5;backdrop-filter:blur(8px);padding:10px 0;margin-top:-8px;border-bottom:1px solid #ccddd5}.schedule-summary{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.schedule-summary strong{font-size:15px}.schedule-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.schedule-tools label{font-size:10px;color:#63797d}.schedule-tools select{margin-top:4px;min-height:36px}.schedule-row{position:relative;margin-top:10px}.schedule-row .top>strong{font-size:19px;letter-spacing:.3px}.schedule-route{display:flex;align-items:center;gap:9px;margin:12px 0 9px}.schedule-route b{font-size:13px;flex:1;min-width:0}.schedule-route b:last-child{text-align:right}.route-arrow{color:#63a095}.schedule-time{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:#f0f6f2;margin:9px 0}.schedule-time b{font-variant-numeric:tabular-nums;font-size:20px}.schedule-time span{font-size:10px;color:#63797d}.schedule-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;border-top:1px dashed #d4e2d9;padding-top:9px;margin-top:8px}.schedule-actions .btn{min-height:34px}.schedule-pair{color:#377d6b;font-size:10px;margin-top:7px}.svc-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.svc-form-grid input,.svc-form-grid select{min-height:40px}.svc-field label{display:block;font-size:11px;font-weight:700;color:#59706b;margin:11px 0 6px}.svc-plan{padding:12px;border:1px solid #c9ded4;background:#eff7f1;border-radius:10px;margin-top:14px;line-height:1.8;font-size:11px}.svc-plan b{color:#153e3c}.svc-error{padding:10px;background:#fff0ed;color:#a83c2c;border-radius:8px;font-size:12px;line-height:1.7;margin-top:12px}.svc-foot{position:sticky;bottom:-18px;background:#fff;padding:12px 0 1px;margin-top:8px;border-top:1px solid #e2e9e5;z-index:2}.svc-help{font-size:10px;line-height:1.7;color:#63797d;margin-top:9px}.svc-ref{border:1px solid #d5e5dd;padding:10px;border-radius:9px;margin-top:12px}.svc-ref summary{font-size:11px;color:#376b5c;cursor:pointer}.svc-ref .btn{margin-top:8px}.svc-edit-note{padding:10px;background:#fff7e7;border-radius:9px;color:#825f22;font-size:11px;line-height:1.7}.schedule-empty{padding:30px 10px;text-align:center;color:#63797d;font-size:12px}
+@media(max-width:350px){.schedule-row .top>strong{font-size:17px}.schedule-route b{font-size:12px}.svc-form-grid{gap:7px}.schedule-time{padding:8px}.schedule-time b{font-size:17px}.schedule-actions .btn{padding:5px 7px;font-size:10px}.schedule-toolbar{top:-9px}}
+
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">🚄 铁路规划模拟器<span class="ver">v1.1.0</span></div>
+  <div class="brand">🚄 铁路规划模拟器<span class="ver">v1.2.0</span></div>
   <div class="clock">第 <span id="dayN">1</span> 天 · <span id="timeStr">05:00</span></div>
   <div class="speed">
     <button data-s="0" id="sp0">⏸</button>
@@ -170,6 +174,7 @@ function newState(){
 }
 let saveLocked=false,saveRev=0;
 function validState(d){
+ validateSchedule12(d);
  if(!d||typeof d!=='object'||!Number.isFinite(d.cash)||Math.abs(d.cash)>1e15||!Number.isInteger(d.T)||d.T<0||!Number.isInteger(d.day)||d.day!==Math.floor(d.T/1440)+1||!Number.isFinite(d.loans)||d.loans<0||!d.ids||!d.lines||!d.comm||!d.stats)throw Error('存档结构无效');
  for(const k of ['svc','train','staff'])if(!Number.isInteger(d.ids[k])||d.ids[k]<0)throw Error('编号无效');
  for(const k of ['income','cost','trips','onTime','arrived'])if(!Number.isFinite(d.stats[k])||d.stats[k]<0)throw Error('统计无效');
@@ -182,12 +187,12 @@ function validState(d){
  if(d.ops){if(!Number.isFinite(d.ops.rep)||d.ops.rep<0||d.ops.rep>100||!Number.isFinite(d.ops.totalPax)||d.ops.totalPax<0||!Array.isArray(d.ops.claimed)||!Array.isArray(d.ops.log))throw Error('经营数据无效');d.ops.log=d.ops.log.filter(x=>typeof x==='string'&&!/[<>]/.test(x)).slice(0,12);d.ops.claimed=d.ops.claimed.filter(x=>Number.isInteger(x)&&x>=0&&x<12);d.ops.case=Math.max(0,Math.min(24,Number(d.ops.case)||0));d.ops.fare=['value','normal','premium'].includes(d.ops.fare)?d.ops.fare:'normal';}
  d.speed=0;return d;
 }
-function save(){if(saveLocked||!S)return;try{saveRev=Math.max(Date.now(),saveRev+1);localStorage.setItem(KEY,JSON.stringify({game:'G207',version:'1.1.0',rev:saveRev,state:S}));}catch(e){if(!window.storageWarned){window.storageWarned=true;toast('存储空间不可用，请导出存档保留进度','bad');}}}
-function load(){try{let raw=localStorage.getItem(KEY),legacy=false;if(!raw){raw=localStorage.getItem(LEGACY_KEY);legacy=true;}if(!raw)return false;const p=JSON.parse(raw);S=validState(p.state||p);saveRev=p.rev||0;if(legacy)localStorage.setItem(KEY+'_legacy_backup',raw);return true;}catch(e){toast('存档损坏，原数据已保留。可在管理页导入备份。','bad');return false;}}
+function save(){if(saveLocked||!S)return;try{saveRev=Math.max(Date.now(),saveRev+1);localStorage.setItem(KEY,JSON.stringify({game:'G207',version:'1.2.0',rev:saveRev,state:S}));}catch(e){if(!window.storageWarned){window.storageWarned=true;toast('存储空间不可用，请导出存档保留进度','bad');}}}
+function load(){try{let raw=localStorage.getItem(KEY),legacy=false;if(!raw){raw=localStorage.getItem(LEGACY_KEY);legacy=true;}if(!raw)return false;const p=JSON.parse(raw);S=validState(p.state||p);if(S.scheduleSchema!==2)localStorage.setItem(KEY+'_before_v1.2.0',raw);migrateSchedule12(S);saveRev=p.rev||0;if(legacy)localStorage.setItem(KEY+'_legacy_backup',raw);return true;}catch(e){toast('存档损坏，原数据已保留。可在管理页导入备份。','bad');return false;}}
 addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){try{const p=JSON.parse(e.newValue);if(p.rev>saveRev){saveLocked=true;S.speed=0;openExternal();}}catch{}}});
 function openExternal(){modalOpen=true;$('modalRoot').innerHTML='<div class="modal-mask"><div class="modal"><h3>另一页面已有更新</h3><p class="small">已暂停本页写入，防止覆盖更新的进度。可以先导出当前进度，再载入最新存档。</p><div class="flex" style="margin-top:14px"><button class="btn" onclick="exportSave()">导出本页进度</button><button class="btn sec" onclick="location.reload()">载入最新</button></div></div></div>';}
-function exportSave(){const b=new Blob([JSON.stringify({game:'G207',version:'1.1.0',state:S},null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='铁路规划模拟器-第'+S.day+'天.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
-function importSave(file){if(!file||saveLocked)return;if(file.size>2000000){toast('存档文件过大','bad');return;}file.text().then(raw=>{try{const p=JSON.parse(raw);if(p.game&&p.game!=='G207')throw Error('不属于本游戏');const d=validState(p.state||p);if(!confirm('导入后替换本页进度，当前进度将自动留一份本机备份。继续？'))return;localStorage.setItem(KEY+'_before_import',JSON.stringify(S));S=d;initOps();save();closeModal();renderClock();renderView();toast('存档已导入，当前已暂停','ok');}catch(e){toast('导入失败：'+e.message+'，当前进度未变','bad');}});}
+function exportSave(){const b=new Blob([JSON.stringify({game:'G207',version:'1.2.0',state:S},null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='铁路规划模拟器-第'+S.day+'天.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+function importSave(file){if(!file||saveLocked)return;if(file.size>2000000){toast('存档文件过大','bad');return;}file.text().then(raw=>{try{const p=JSON.parse(raw);if(p.game&&p.game!=='G207')throw Error('不属于本游戏');const d=validState(p.state||p);if(!confirm('导入后替换本页进度，当前进度将自动留一份本机备份。继续？'))return;localStorage.setItem(KEY+'_before_import',JSON.stringify(S));S=d;migrateSchedule12(S);initOps();save();closeModal();renderClock();renderView();toast('存档已导入，当前已暂停','ok');}catch(e){toast('导入失败：'+e.message+'，当前进度未变','bad');}});}
 
 /* ================= 工具 ================= */
 const $=id=>document.getElementById(id);
@@ -241,7 +246,7 @@ function tick(){
  for(let i=0;i<S.speed;i++){S.T++;minuteStep();}
  renderClock();
 }
-function minuteStep(){
+function minuteStepLegacy(){
  const day=Math.floor(S.T/1440)+1;
  if(day!==S.day){S.day=day;newDay();}
  const tod=S.T%1440;
@@ -253,7 +258,7 @@ function minuteStep(){
   if(sv.status==='running'&&S.T>=sv.arriveAbs)arrive(sv);
  });
 }
-function tryDepart(sv){
+function tryDepartLegacy(sv){
  const line=lineOf(sv.lineId),train=trainOf(sv.trainUid);
  if(!train||train.freeAt>S.T)return; // 车辆未回库，继续等待
  const m=modelOf(train.modelId);
@@ -272,7 +277,7 @@ function tryDepart(sv){
   sv.arriveAbs+=sv.delay-departureDelay;
   toast('🔧 '+sv.code+' 列车设备故障，预计晚点 '+sv.delay+' 分钟','bad');
  }
- train.freeAt=sv.arriveAbs+90;
+ train.freeAt=Math.max(train.freeAt,sv.arriveAbs+(sv.turnMin??90));
  const energy=line.len*m.energy;
  S.cash-=energy;S.stats.cost+=energy;
 }
@@ -288,9 +293,9 @@ function arrive(sv){
  if(sv.delay>15){comp=Math.round(rev*0.1);S.cash-=comp;S.stats.cost+=comp;}
  S.cash+=rev;S.stats.income+=rev;S.stats.trips++;
  S.stats.arrived++;if(sv.delay<=10)S.stats.onTime++;
- train.freeAt=sv.arriveAbs+90;
+ train.freeAt=Math.max(train.freeAt,sv.arriveAbs+(sv.turnMin??90));
  const onTime=sv.delay<=10;
- toast('🚄 '+sv.code+' '+line.stations[0]+' → '+line.stations[line.stations.length-1]+
+ toast('🚄 '+sv.code+' '+svcEndpoints(sv)[0]+' → '+svcEndpoints(sv)[1]+
   ' 到达，载客 '+pax+' 人，票务+商业收益 <b>'+fmtY(rev)+'</b>'+(comp?('（晚点赔付 -'+fmt(comp)+'）'):''),
   onTime?'ok':'');
  save();
@@ -331,6 +336,7 @@ function renderClock(){
  $('cashV').textContent=fmt(S.cash);
 }
 function renderView(){
+ if(document.activeElement?.matches("#view select, #view input"))return;
  if(modalOpen)return;
  const fns={ov:renderOV,ln:renderLN,fl:renderFL,sv:renderSV,hr:renderHR,cm:renderCM};
  $('view').innerHTML=fns[curTab]();
@@ -355,7 +361,7 @@ function renderOV(){
   if(sv.status==='running'){
    const pct=Math.min(100,Math.max(0,(S.T-sv.depAbs)/(sv.arriveAbs-sv.depAbs)*100));
    mid='<div class="prog"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+
-    '<div class="small flex"><span>'+line.stations[0]+' ⟶ '+line.stations[line.stations.length-1]+'</span>'+
+    '<div class="small flex"><span>'+svcEndpoints(sv)[0]+' ⟶ '+svcEndpoints(sv)[1]+'</span>'+
     (sv.delay>0?'<span class="tag r">晚点 '+sv.delay+' 分</span>':'<span class="tag g">正点运行</span>')+
     '<span class="tag gr">'+m.name.split('（')[0]+'</span></div>';
   }else{
@@ -475,7 +481,7 @@ function sellTrain(uid){
 }
 
 /* ================= 班次 ================= */
-function renderSV(){
+function renderSVLegacy(){
  const order={running:0,wait:1,done:2};
  const list=[...S.services].sort((a,b)=>order[a.status]-order[b.status]||a.depMin-b.depMin);
  const rows=list.map(sv=>{
@@ -485,7 +491,7 @@ function renderSV(){
    const pct=Math.min(100,Math.max(0,(S.T-sv.depAbs)/(sv.arriveAbs-sv.depAbs)*100));
    chip='<span class="tag g">运行中</span>';
    body='<div class="prog"><i style="width:'+pct+'%"></i></div>'+
-    '<div class="small">'+line.stations[0]+' ⟶ '+line.stations[line.stations.length-1]+
+    '<div class="small">'+svcEndpoints(sv)[0]+' ⟶ '+svcEndpoints(sv)[1]+
     (sv.delay>0?' · <span class="r1">晚点 '+sv.delay+' 分</span>':' · 正点')+'</div>';
   }else if(sv.status==='wait'){
    chip='<span class="tag a">候车</span>'+(sv.late?'<span class="tag r">待人员/车辆</span>':'');
@@ -504,7 +510,7 @@ function renderSV(){
   <span class="small">共 ${S.services.length} 个日常班次 · 准点率受地勤与检修力量影响</span></div>
   <div class="list">${rows||'<div class="empty">还没有开行班次，点击上方按钮创建 🚄</div>'}</div>`;
 }
-function openSvc(){
+function openSvcLegacy(){
  modalOpen=true;
  const lines=LINES.filter(l=>S.lines[l.id]);
  if(!lines.length){toast('❌ 请先建设一条线路','bad');modalOpen=false;return;}
@@ -540,7 +546,7 @@ function openSvc(){
   closeModal();save();renderView();
  };
 }
-function delSvc(id){
+function delSvcLegacy(id){
  if(S.services.some(x=>x.id===id&&x.status==='running')){toast('运行中的列车须到达后再移除','bad');return;}
  S.services=S.services.filter(s=>s.id!==id);
  toast('班次已从运行图移除');save();renderView();
@@ -727,15 +733,221 @@ function claimGoal(i){const g=GOALS[i];if(!g||S.ops.claimed.includes(i)||!g[2]()
 function openCase(){initOps();if(S.ops.case>=24){showModal('经营委员会', '<p class="small">24项议题已经完成，经营选择记入日志。继续扩张路网或查看经营结局。</p><button class="btn" onclick="openEnding()">经营结局</button>');return;}if(S.ops.caseDay>S.day){showModal('等待下一次经营会议','<p class="small">本日议题已完成。可以安排班次、改善配套、调整票价；下一个运营日将收到新议题。推进时间不计入有效新增游玩时长。</p>');return;}const c=CASES[S.ops.case];showModal('经营议题 '+(S.ops.case+1)+' / 24',`<span class="tag b">${c[0]}</span><p style="line-height:1.9;margin:15px 0">${c[1]}</p><div class="policy-grid"><button class="btn sec" onclick="decideCase(0)">${c[2]}</button><button class="btn sec" onclick="decideCase(1)">${c[5]}</button></div><p class="small" style="margin-top:14px">两项方案均可推进，资金不足可返回经营后再处理。每个运营日处理一个议题。</p>`);}
 function decideCase(choice){if(S.ops.case>=24||S.ops.caseDay>S.day)return;const c=CASES[S.ops.case],cost=c[choice?6:3],rep=c[choice?7:4];if(S.cash<cost){toast('资金不足，先调整财务或选择另一方案','bad');return;}S.cash-=cost;S.ops.rep=Math.min(100,Math.max(0,S.ops.rep+rep));safeLog('第'+S.day+'天 '+c[0]+'：'+c[choice?5:2]);S.ops.case++;S.ops.caseDay=S.day+1;save();closeModal();renderClock();renderView();toast('决议已执行，现金与声誉已更新','ok');}
 function openEnding(){initOps();const won=S.ops.claimed.length===12;let title=won?(S.ops.rep>=85?'万里通途':'稳健运营'):S.cash< -5e7?'债务重整':'路网仍在生长';showModal(title,`<img class="scene-small" src="assets/${won?'mountain':'terminal'}.webp" alt="铁路旅程"><p style="line-height:1.9">${won?'你已完成所有经营目标。列车把城市连在一起，也把每一次选择留在路网上。':S.cash< -5e7?'现金已低于负五千万。你可以申请贷款、出售闲置车组继续经营，或导出存档后重新开始。':'完成12个经营里程碑后将评定最终经营结局。可以继续经营，也可以保留本次进度。'}</p><p class="small">目标 ${S.ops.claimed.length}/12 · 议题 ${S.ops.case}/24 · 声誉 ${S.ops.rep}</p><button class="btn" onclick="closeModal()">继续经营</button>`);}
-function quickDispatch(){if(S.services.length){switchTab('sv');return;}if(!S.trains.length){switchTab('fl');return;}S.ids.svc++;const dep=(S.T%1440+10)%1440;S.services.push({id:'sv'+S.ids.svc,code:'D'+S.ids.svc,lineId:'icrjj',trainUid:S.trains[0].uid,depMin:dep,depDay:-1,status:'wait',late:false,delay:0});S.speed=1;save();switchTab('sv');toast('首班已安排在10分钟后，模拟运行已开始','ok');}
-function openDesk(){showModal('管理与存档',`<p class="small">铁路规划模拟器 v1.1.0 · 进度保存在当前设备、浏览器和入口。主备入口不自动同步，切换前导出，再到新入口导入。</p><div class="policy-grid" style="margin:14px 0"><button class="btn" onclick="exportSave()">导出存档</button><label class="btn sec" style="text-align:center">导入存档<input type="file" accept="application/json,.json" style="display:none" onchange="importSave(this.files[0])"></label><button class="btn sec" onclick="openFinance()">财务与重新开始</button><button class="btn sec" onclick="openGoals()">经营目标</button></div><p class="small">操作指引：先安排班次 → 观察到站收入 → 招募人员并购买车组 → 贷款或积累现金建设新线路。每日维护与利息会扣款，线路投资不等于利润。车组到达后需90分钟周转，同车排班不能重叠。</p><h4 style="margin-top:16px">经营日志</h4>${(S.ops?.log||[]).map(x=>`<div class="log">${x}</div>`).join('')}`);}
+function quickDispatchLegacy(){if(S.services.length){switchTab('sv');return;}if(!S.trains.length){switchTab('fl');return;}S.ids.svc++;const dep=(S.T%1440+10)%1440;S.services.push({id:'sv'+S.ids.svc,code:'D'+S.ids.svc,lineId:'icrjj',trainUid:S.trains[0].uid,depMin:dep,depDay:-1,status:'wait',late:false,delay:0});S.speed=1;save();switchTab('sv');toast('首班已安排在10分钟后，模拟运行已开始','ok');}
+function openDesk(){showModal('管理与存档',`<p class="small">铁路规划模拟器 v1.2.0 · 进度保存在当前设备、浏览器和入口。主备入口不自动同步，切换前导出，再到新入口导入。</p><div class="policy-grid" style="margin:14px 0"><button class="btn" onclick="exportSave()">导出存档</button><label class="btn sec" style="text-align:center">导入存档<input type="file" accept="application/json,.json" style="display:none" onchange="importSave(this.files[0])"></label><button class="btn sec" onclick="openFinance()">财务与重新开始</button><button class="btn sec" onclick="openGoals()">经营目标</button></div><p class="small">操作指引：先安排班次 → 观察到站收入 → 招募人员并购买车组 → 贷款或积累现金建设新线路。每日维护与利息会扣款，线路投资不等于利润。车组到达后需90分钟周转，同车排班不能重叠。</p><h4 style="margin-top:16px">经营日志</h4>${(S.ops?.log||[]).map(x=>`<div class="log">${x}</div>`).join('')}`);}
 document.querySelectorAll('.speed button').forEach(b=>b.onclick=()=>{S.speed=Number(b.dataset.s);document.querySelectorAll('.speed button').forEach(x=>x.classList.toggle('on',x===b));save();});
 addEventListener('beforeunload',save);
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
+/* v1.2.0 · explicit daily legs, paired workings, editable timetable */
+const TURN_MIN=15;
+const REFERENCE12={
+ icrjj:{codes:['C2001','C2002'],note:'北京南→天津 C2001；天津→北京南 C2002。',url:'https://xinwen.bjd.com.cn/content/s66fce4a8d5deda09fa872df4.html',second:'https://epaper.tianjinwe.com/tjrb/resfile/2026-03-02/02/02.pdf'},
+ hnxj:{codes:['G7002','G7001'],note:'上海→南京采用G7002方向，南京→上海采用G7001方向。',url:'https://shike.gaotie.cn/checi/G7002.htm'},
+ cy:{codes:['D5102','D5101'],note:'铁路加开公告曾采用：成都东→重庆北 D5102；重庆北→成都东 D5101。仅参考方向与编号，游戏不复制指定加开日期。',url:'https://epaper.cqcb.com/attachment/202511/05/4aafd02e-6f25-4973-8e43-f7fb2930f6d6.pdf'},
+ js:{codes:['G1','G2'],note:'北京南→上海虹桥 G1；上海虹桥→北京南 G2。',url:'https://train.qunar.com/train/timetable/G1?date=2026-11-04',second:'https://doss.xhby.net/zpaper/njcb/pc/att/202601/16/07577d92-9c6a-4249-98c9-9eeced43afa4.pdf'},
+ qj:{codes:['D6002','D6001'],note:'青岛→济南 D6002；济南→青岛 D6001，按胶济方向车次资料提供参考。',url:'https://trains.ctrip.com/TrainSchedule/D6002/',second:'https://www.liecheba.com/shandong/jinan.html'},
+ zxi:{codes:['G2201','G2204'],note:'跨线区段参考：郑州东→西安北 G2201；西安北→郑州东 G2204。现实车次继续开往/始发成都东，游戏只运营郑西区段。',url:'https://www.liecheba.com/shaanxi/xianbei.html'},
+ hd:{codes:['G701','G702'],note:'哈大方向编号参考：大连北→哈尔滨西 G701，反向 G702。',url:'https://huoche.qunar.com/train/timetable/G701',second:'https://zh.wikipedia.org/wiki/哈大高速动车组列车'},
+ lx:{codes:['D2711','D2712'],note:'兰新方向编号参考：兰州西→乌鲁木齐 D2711；反向 D2712。铁路报道曾记载该对车次，游戏时刻另行安排。',url:'https://m.thepaper.cn/newsDetail_forward_2145841',second:'https://www.jingyu100.com/train/lanzhouxi.html'},
+ jg:{codes:['G65','G68'],note:'京广历史编号参考：2017年北京西—广州南G65/68次曾由标准动车组担当。仅供模拟命名，不表示当前仍按此图开行。',url:'https://zh.wikipedia.org/wiki/复兴号CR400BF型电力动车组'},
+ hk:{codes:['G1371','G1374'],note:'沪昆方向编号参考：上海虹桥→昆明南 G1371；反向 G1374。现实上下行配对不一定是相邻数字。',url:'https://zh.wikipedia.org/wiki/沪昆高速动车组列车',second:'https://www.jingyu100.com/train/shanghaihongqiao.html'}
+};
+// Remove the prototype's fictitious passenger stop while retaining the existing route ID.
+lineOf('icrjj').stations=['北京南站','亦庄站','武清站','天津站'];
+function svcEndpoints(sv){const l=lineOf(sv.lineId);return sv.direction===-1?[l.stations.at(-1),l.stations[0]]:[l.stations[0],l.stations.at(-1)];}
+function scheduleDuration(sv){const t=trainOf(sv.trainUid);return durMin(lineOf(sv.lineId),modelOf(t.modelId));}
+function time12(n){n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+function abs12(n){const d=Math.floor(n/1440)+1;return '第'+d+'天 '+time12(n);}
+function nextDay12(min,now=S.T){let t=Math.floor(now/1440)*1440+min;if(t<now)t+=1440;return t;}
+function normalizeCode12(code){return String(code||'').trim().toUpperCase();}
+function text12(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function validCode12(code){return /^[GDCZTK][1-9]\d{0,3}$/.test(code);}
+function group12(sv){return sv.pairId?S.services.filter(x=>x.pairId===sv.pairId):[sv];}
+function validateSchedule12(d){
+ if(!d||!Array.isArray(d.services))return;
+ if(d.scheduleSchema!==undefined&&d.scheduleSchema!==2)throw Error('不支持的运行图版本');
+ const ids=new Set(),codes=new Set();
+ for(const x of d.services){
+  if(!x||typeof x!=='object')throw Error('班次内容无效');
+  if(ids.has(x.id))throw Error('班次ID重复');ids.add(x.id);
+  if(d.scheduleSchema===2){
+   if(!validCode12(x.code)||codes.has(x.code))throw Error('车次号无效或重复');codes.add(x.code);
+   if(![1,-1].includes(x.direction)||!Number.isInteger(x.turnMin)||x.turnMin<TURN_MIN||x.turnMin>180||!Number.isInteger(x.nextDepAbs)||x.nextDepAbs<0||x.nextDepAbs%1440!==x.depMin||!Number.isInteger(x.startAbs)||x.startAbs<0||x.startAbs%1440!==x.depMin)throw Error('班次时间或方向无效');
+   for(const field of ['delay','depAbs','arriveAbs','lastPlanAbs','lastArrivalPlanAbs'])if(x[field]!==null&&x[field]!==undefined&&(!Number.isFinite(x[field])||x[field]<0||x[field]>1e12))throw Error('班次运行数据无效');
+   if(x.pairId!==null&&x.pairId!==undefined&&!/^rt\d+$/.test(x.pairId))throw Error('往返关联无效');
+  }
+ }
+ if(d.scheduleSchema===2){
+  const groups=new Map();for(const x of d.services){if(x.pairId){if(!groups.has(x.pairId))groups.set(x.pairId,[]);groups.get(x.pairId).push(x);}}
+  for(const legs of groups.values())if(legs.length!==2||legs[0].lineId!==legs[1].lineId||legs[0].trainUid!==legs[1].trainUid||legs[0].direction===legs[1].direction||new Set(legs.map(x=>x.leg)).size!==2||!legs.every(x=>['outbound','return'].includes(x.leg)))throw Error('往返关联不完整');
+ }
+}
+function migrateSchedule12(d){
+ if(d.scheduleSchema===2)return;
+ const previous=JSON.parse(JSON.stringify(d.services));
+ for(const x of d.services){
+  x.direction=1;x.turnMin=90;x.pairId=null;x.startAbs=Math.floor(d.T/1440)*1440+x.depMin;
+  x.nextDepAbs=nextDay12(x.depMin,d.T);
+  if(x.status==='running'){x.nextDepAbs=Math.floor(x.depAbs/1440)*1440+x.depMin+1440;}
+  else if(x.depDay===d.day){x.nextDepAbs=Math.floor(d.T/1440)*1440+x.depMin+1440;}
+  x.lastPlanAbs=x.status==='running'?(x.depAbs-(x.delay||0)):x.doneDay?((x.doneDay-1)*1440+x.depMin):null;
+ }
+ d.scheduleSchema=2;d.scheduleUI={sort:'time',line:'all',status:'all'};
+ d.migration12={previousVersion:'1.1.0',services:previous.length,convertedAt:d.T};
+}
+function resetLeg12(x){x.status='wait';x.late=false;x.delay=0;x.depDay=-1;delete x.depAbs;delete x.arriveAbs;delete x.doneDay;delete x.skipReason;delete x.waitReason;delete x.lastArrivalPlanAbs;x.lastPlanAbs=null;return x;}
+function dueStatus12(sv){if(sv.status==='running')return 'running';if(sv.status==='done'&&sv.skipped)return 'skipped';return sv.status==='done'?'done':'wait';}
+function minuteStep(){
+ const day=Math.floor(S.T/1440)+1;if(day!==S.day){S.day=day;newDay();}
+ // Complete arrivals before testing departures; array insertion order cannot delay a connecting service.
+ for(const sv of S.services)if(sv.status==='running'&&S.T>=sv.arriveAbs)arrive(sv);
+ for(const sv of [...S.services].sort((a,b)=>a.nextDepAbs-b.nextDepAbs)){
+  if(sv.status==='running')continue;
+  if(S.T<sv.nextDepAbs){
+   if(Math.floor((sv.lastPlanAbs??-1440)/1440)!==Math.floor(S.T/1440)){sv.status='wait';sv.skipped=false;}
+   continue;
+  }
+  if(S.T-sv.nextDepAbs>90){
+   sv.status='done';sv.skipped=true;sv.skipReason=sv.waitReason||'已错过发车窗口';sv.lastPlanAbs=sv.nextDepAbs;
+   const missed=Math.floor((S.T-sv.nextDepAbs-91)/1440)+1;sv.nextDepAbs+=Math.max(1,missed)*1440;sv.depDay=day;
+   toast('⚠️ '+sv.code+' 今日停运：'+sv.skipReason);continue;
+  }
+  tryDepart(sv);
+ }
+}
+function tryDepart(sv){
+ const line=lineOf(sv.lineId),train=trainOf(sv.trainUid);if(!train)return;
+ if(train.freeAt>S.T){sv.waitReason='车组尚未完成运行或整备';sv.late=true;return;}
+ const sibling=sv.pairId?S.services.find(x=>x.pairId===sv.pairId&&x.id!==sv.id):null;
+ // A paired return cannot move before the outbound leg of that cycle has arrived.
+ if(sibling&&sv.leg==='return'){
+  const planned=sv.nextDepAbs-((sv.startAbs-sibling.startAbs+1440)%1440||1440);
+  if(sibling.status==='running'||sibling.lastArrivalPlanAbs!==planned){sv.waitReason='等待本轮去程到达';sv.late=true;return;}
+ }
+ const m=modelOf(train.modelId),need=runningNeed(),driver=m.speed>=200?'hdriver':'kdriver';need[driver]++;need.crew+=Math.ceil(m.seats/300);
+ if(staffCount(driver)<need[driver]||staffCount('crew')<need.crew){sv.waitReason='司机或乘务不足';sv.late=true;return;}
+ const planned=sv.nextDepAbs;sv.lastPlanAbs=planned;sv.nextDepAbs=planned+1440;sv.depDay=S.day;sv.status='running';sv.skipped=false;sv.waitReason='';
+ sv.depAbs=S.T;sv.arriveAbs=S.T+scheduleDuration(sv);sv.delay=Math.max(0,S.T-planned);sv.late=sv.delay>0;
+ if(Math.random()<breakdownRisk()){const delay=20+Math.floor(Math.random()*50);sv.delay+=delay;sv.arriveAbs+=delay;toast('🔧 '+sv.code+' 设备检查，预计晚点 '+sv.delay+' 分钟','bad');}
+ train.freeAt=sv.arriveAbs+sv.turnMin;
+ const energy=line.len*m.energy;S.cash-=energy;S.stats.cost+=energy;
+}
+const arriveBefore12=arrive;
+arrive=function(sv){sv.lastArrivalPlanAbs=sv.lastPlanAbs;arriveBefore12(sv);};
+function sortedServices12(){
+ const ui=S.scheduleUI||{sort:'time',line:'all',status:'all'};
+ const statusOrder={running:0,wait:1,skipped:2,done:3};
+ const compareCode=(a,b)=>a.code.localeCompare(b.code,'en',{numeric:true});
+ const key={time:(a,b)=>a.depMin-b.depMin,timeDesc:(a,b)=>b.depMin-a.depMin,next:(a,b)=>a.nextDepAbs-b.nextDepAbs,arrival:(a,b)=>(a.depMin+scheduleDuration(a))-(b.depMin+scheduleDuration(b)),status:(a,b)=>statusOrder[dueStatus12(a)]-statusOrder[dueStatus12(b)],code:compareCode,line:(a,b)=>lineOf(a.lineId).name.localeCompare(lineOf(b.lineId).name,'zh-CN'),train:(a,b)=>a.trainUid-b.trainUid};
+ return S.services.filter(x=>(ui.line==='all'||x.lineId===ui.line)&&(ui.status==='all'||dueStatus12(x)===ui.status)).sort((a,b)=>(key[ui.sort]||key.time)(a,b)||a.depMin-b.depMin||compareCode(a,b)||a.id.localeCompare(b.id));
+}
+function setScheduleUI12(key,value){if(!S.scheduleUI)S.scheduleUI={sort:'time',line:'all',status:'all'};S.scheduleUI[key]=value;save();document.activeElement?.blur();renderView();}
+function renderSV(){
+ const ui=S.scheduleUI||{sort:'time',line:'all',status:'all'},list=sortedServices12();
+ const options=(arr,value)=>arr.map(([key,label])=>`<option value="${key}" ${value===key?'selected':''}>${label}</option>`).join('');
+ const pairs=new Set(S.services.filter(x=>x.pairId).map(x=>x.pairId)).size;
+ const toolbar=`<div class="schedule-toolbar"><div class="schedule-summary"><strong>运行图 <span class="small">${S.services.length}趟 · ${pairs}对往返</span></strong><button class="btn" onclick="openSvc()">＋ 新增班次</button></div><div class="schedule-tools"><label>排序<select id="scheduleSort" aria-label="班次排序" onchange="setScheduleUI12('sort',this.value)">${options([['time','发车时间：早→晚'],['timeDesc','发车时间：晚→早'],['next','下次发车先后'],['arrival','预计到达时间'],['status','运行状态优先'],['code','车次号自然顺序'],['line','线路名称'],['train','担当车组']],ui.sort)}</select></label><label>线路筛选<select id="scheduleLine" aria-label="线路筛选" onchange="setScheduleUI12('line',this.value)">${options([['all','全部线路'],...LINES.filter(l=>S.lines[l.id]).map(l=>[l.id,l.name])],ui.line)}</select></label></div><div class="flex" style="margin-top:8px"><label class="small">状态 <select id="scheduleStatus" aria-label="状态筛选" style="display:inline-block;width:auto;padding:4px 7px" onchange="setScheduleUI12('status',this.value)">${options([['all','全部'],['running','运行中'],['wait','候车'],['done','已到达'],['skipped','停运']],ui.status)}</select></label><span class="small">显示${list.length}趟 · 每条均可调整</span></div></div>`;
+ const rows=list.map(sv=>{
+  const l=lineOf(sv.lineId),t=trainOf(sv.trainUid),m=modelOf(t.modelId),ends=svcEndpoints(sv),st=dueStatus12(sv);
+  const tags={running:['g','运行中'],wait:['a',sv.late?'等待资源':'候车'],done:['gr','已到达'],skipped:['r','今日停运']},tag=tags[st];
+  const arr=sv.depMin+scheduleDuration(sv),blocked=group12(sv).some(x=>x.status==='running');
+  const sibling=sv.pairId?S.services.find(x=>x.pairId===sv.pairId&&x.id!==sv.id):null;
+  return `<article class="row schedule-row" data-svc="${sv.id}"><div class="top"><strong>${sv.code}</strong><span class="tag b">${sv.pairId?(sv.leg==='return'?'返程':'去程'):'单程'}</span><span class="tag ${tag[0]}">${tag[1]}</span><span class="tag gr">每日</span></div><div class="schedule-route"><b>${ends[0]}</b><span class="route-arrow">⟶</span><b>${ends[1]}</b></div><div class="schedule-time"><div><span>计划发车</span><br><b>${time12(sv.depMin)}</b></div><span>${scheduleDuration(sv)}分钟 · ${sv.turnMin}分钟整备</span><div style="text-align:right"><span>预计到达${arr>=1440?' · 次日':''}</span><br><b>${time12(arr)}</b></div></div><p class="small">${l.name} · ${m.name} · UT-${String(t.uid).padStart(3,'0')}</p>${sv.status==='running'?`<div class="prog"><i style="width:${Math.min(100,(S.T-sv.depAbs)/(sv.arriveAbs-sv.depAbs)*100)}%"></i></div><p class="small">实际发车 ${abs12(sv.depAbs)} · 预计到达 ${abs12(sv.arriveAbs)}${sv.delay?' · 晚点'+sv.delay+'分':''}</p>`:`<p class="small">下次始发：${abs12(sv.nextDepAbs)}${sv.waitReason&&sv.late?' · '+text12(sv.waitReason):''}${sv.skipped?' · '+text12(sv.skipReason):''}</p>`}${sibling?`<p class="schedule-pair">⇄ 关联${sv.leg==='return'?'去程':'返程'} ${sibling.code} · ${time12(sibling.depMin)}发车 · 同车往返</p>`:''}<div class="schedule-actions"><button class="btn sec sm" ${blocked?'disabled':''} onclick="openSvc('${sv.id}')">${blocked?'到达后调整':'调整'}</button>${!sv.pairId?`<button class="btn sec sm" ${blocked?'disabled':''} onclick="openSvc('${sv.id}',true)">补建返程</button>`:''}<button class="btn red sm" ${blocked?'disabled':''} onclick="delSvc('${sv.id}')">${sv.pairId?'删除往返':'删除'}</button></div></article>`;
+ }).join('');
+ return toolbar+(rows||'<div class="schedule-empty">'+(S.services.length?'当前筛选下没有班次。':'先新增一对往返班次，安排好两端的发车时间。')+'</div>');
+}
+function suggestCodes12(lineId,direction=1,exclude=[]){
+ const ref=REFERENCE12[lineId],index=LINES.findIndex(l=>l.id===lineId);const base=ref?ref.codes:['G'+(3001+index*100),'G'+(3002+index*100)];
+ const used=new Set(S.services.filter(x=>!exclude.includes(x.id)).map(x=>x.code));
+ const out=direction===1?base:[base[1],base[0]];
+ return out.map(code=>{const p=code[0],n=Number(code.slice(1));for(let k=n;k<=9999;k+=2){const candidate=p+k;if(!used.has(candidate)){used.add(candidate);return candidate;}}return '';});
+}
+let svcEdit12=null;
+function openSvc(id=null,addReturn=false){
+ const original=id?S.services.find(x=>x.id===id):null;if(id&&!original)return;
+ const group=original?group12(original):[];if(group.some(x=>x.status==='running')){toast('请在该往返全部到达后调整，当前行程已保护','bad');return;}
+ const built=LINES.filter(l=>S.lines[l.id]);if(!built.length||!S.trains.length){toast(!built.length?'先建设一条线路':'请先购置车组','bad');return;}
+ const out=group.find(x=>x.leg==='outbound')||original,ret=group.find(x=>x.leg==='return');
+ svcEdit12={ids:group.map(x=>x.id),outId:out?.id||null,retId:ret?.id||null,pairId:out?.pairId||null,addReturn};
+ const line=out?.lineId||built[0].id,dir=out?.direction||1,mode=ret||addReturn||!original?'round':'single';
+ const codes=suggestCodes12(line,dir,svcEdit12.ids);
+ const dep=out?.depMin??((S.T%1440+30)%1440),turn=out?.turnMin??30;
+ const m=modelOf(trainOf(out?.trainUid||S.trains[0].uid).modelId);const duration=durMin(lineOf(line),m);const returnRaw=dep+duration+turn+15;
+ showModal(original?(addReturn?'补建返程':'调整班次'):'新增往返 / 单程班次',`${original?'<div class="svc-edit-note">保留原班次ID、经营收益与记录。修改从下一次计划发车生效；运行中的班次不可调整。</div>':''}<div class="svc-form-grid"><div class="svc-field"><label for="svcMode">开行方式</label><select id="svcMode" onchange="refreshSvc12()"><option value="round" ${mode==='round'?'selected':''}>每日往返（2趟）</option><option value="single" ${mode==='single'?'selected':''}>每日单程（1趟）</option></select></div><div class="svc-field"><label for="svcDirection">去程方向</label><select id="svcDirection" onchange="refreshSvc12(true)"><option value="1" ${dir===1?'selected':''}>线路正向</option><option value="-1" ${dir===-1?'selected':''}>线路反向</option></select></div></div><div class="svc-field"><label for="svcLine">运营线路</label><select id="svcLine" onchange="refreshSvc12(true)">${built.map(l=>`<option value="${l.id}" ${l.id===line?'selected':''}>${l.name}</option>`).join('')}</select></div><div class="svc-field"><label for="svcTrain">担当车组（往返使用同一列）</label><select id="svcTrain" onchange="refreshSvc12()">${S.trains.map(t=>`<option value="${t.uid}" ${t.uid===(out?.trainUid||S.trains[0].uid)?'selected':''}>UT-${String(t.uid).padStart(3,'0')} · ${modelOf(t.modelId).name}</option>`).join('')}</select></div><div class="svc-form-grid"><div class="svc-field"><label for="svcCode">去程 / 单程车次号</label><input id="svcCode" maxlength="5" value="${out?.code||codes[0]}" placeholder="例：C2001" oninput="refreshSvc12()"></div><div class="svc-field"><label for="svcTime">去程发车</label><input id="svcTime" type="time" value="${time12(dep)}" onchange="refreshSvc12()"></div></div><div id="returnFields12"><div class="svc-form-grid"><div class="svc-field"><label for="svcReturnCode">返程车次号</label><input id="svcReturnCode" maxlength="5" value="${ret?.code||codes[1]}" placeholder="例：C2002" oninput="refreshSvc12()"></div><div class="svc-field"><label for="svcReturnTime">返程发车</label><input id="svcReturnTime" type="time" value="${time12(ret?.depMin??returnRaw)}" onchange="refreshSvc12()"></div></div><div class="svc-field"><label for="svcReturnDay">返程相对去程</label><select id="svcReturnDay" onchange="refreshSvc12()"><option value="0">去程当日</option><option value="1">去程次日</option></select></div></div><div class="svc-field"><label for="svcTurn">到站整备 / 折返时间（15–180分钟）</label><input id="svcTurn" type="number" min="15" max="180" step="1" value="${turn}" onchange="refreshSvc12()"></div><div id="svcReference12"></div><div class="svc-plan" id="svcPreview12"></div><div id="svcError12" class="svc-error" style="display:none" role="alert"></div><div class="svc-foot"><button id="svcSubmit12" class="btn" style="width:100%" onclick="submitSvc12()">${original?'保存调整':'确认开行'}</button></div><p class="svc-help">车次号可自定义：G / D / C / Z / T / K ＋ 1–4位非零开头数字，忽略大小写，不可重号。号段示例用于模拟经营，时刻和配车由你安排，不代表铁路实时运行图。</p>`);
+ if(ret)$('svcReturnDay').value=String(Math.floor((ret.startAbs-out.startAbs)/1440)+(out.depMin>ret.depMin?1:0));
+ else $('svcReturnDay').value=String(returnRaw>=1440?1:0);
+ refreshSvc12();
+}
+function parseTime12(value){if(!/^\d{2}:\d{2}$/.test(value||''))return NaN;const [h,m]=value.split(':').map(Number);return h<24&&m<60?h*60+m:NaN;}
+function form12(){return {mode:$('svcMode').value,lineId:$('svcLine').value,trainUid:Number($('svcTrain').value),direction:Number($('svcDirection').value),code:normalizeCode12($('svcCode').value),depMin:parseTime12($('svcTime').value),returnCode:normalizeCode12($('svcReturnCode').value),returnMin:parseTime12($('svcReturnTime').value),returnDay:Number($('svcReturnDay').value),turnMin:Number($('svcTurn').value)};}
+function refreshSvc12(resetCodes=false){
+ const f=form12(),l=lineOf(f.lineId),t=trainOf(f.trainUid),m=modelOf(t.modelId),d=durMin(l,m),ends=f.direction===1?[l.stations[0],l.stations.at(-1)]:[l.stations.at(-1),l.stations[0]];
+ if(resetCodes){const c=suggestCodes12(f.lineId,f.direction,svcEdit12.ids);$('svcCode').value=c[0];$('svcReturnCode').value=c[1];}
+ $('returnFields12').hidden=f.mode!=='round';
+ const ref=REFERENCE12[f.lineId];$('svcReference12').innerHTML=`<details class="svc-ref"><summary>${ref?'真实车次方向参考':'模拟号段示例'} · 点此查看与填入</summary><p class="small">${ref?ref.note:'该线路尚未配置已核验的具体车次，自动建议为模拟号段，可自定义。'} ${ref?`<a href="${ref.url}" target="_blank" rel="noopener">资料来源</a>`:''}</p><button class="btn sec sm" type="button" onclick="fillCode12()">填入未占用建议号</button><p class="svc-help">建议号若被占用，按同奇偶顺延2，仅代表模拟编号；不表示顺延后车次真实开行。配对车次不表示现实中同一车组担当。</p></details>`;
+ $('svcDirection').options[0].text='正向：'+l.stations[0]+' → '+l.stations.at(-1);$('svcDirection').options[1].text='反向：'+l.stations.at(-1)+' → '+l.stations[0];
+ $('svcPreview12').innerHTML=`<b>去程：${ends[0]} → ${ends[1]}</b><br>${time12(f.depMin)} 开 → ${f.depMin+d>=1440?'次日 ':''}${time12(f.depMin+d)} 到 · 约${d}分钟${f.mode==='round'?`<br><b>返程：${ends[1]} → ${ends[0]}</b><br>${f.returnDay?'次日':'当日'} ${time12(f.returnMin)} 开 → ${Math.floor((f.returnDay*1440+f.returnMin+d)/1440)>0?'去程第'+(Math.floor((f.returnDay*1440+f.returnMin+d)/1440)+1)+'天 ':''}${time12(f.returnMin+d)} 到`:''}<br>实际到达受线路限速、车速与晚点影响。`;
+ $('svcError12').style.display='none';
+}
+function fillCode12(){const c=suggestCodes12($('svcLine').value,Number($('svcDirection').value),svcEdit12.ids);$('svcCode').value=c[0];$('svcReturnCode').value=c[1];refreshSvc12();}
+function checkPlan12(f,exclude=[]){
+ const l=lineOf(f.lineId),t=trainOf(f.trainUid);
+ if(!l||!S.lines[f.lineId]||!t)return '请选择已通车线路和有效车组。';
+ if(![1,-1].includes(f.direction)||!Number.isInteger(f.depMin)||f.depMin<0||f.depMin>=1440)return '请输入有效方向和去程时间。';
+ if(!Number.isInteger(f.turnMin)||f.turnMin<TURN_MIN||f.turnMin>180)return '整备时间必须为15–180分钟的整数。';
+ if(!validCode12(f.code)||f.mode==='round'&&!validCode12(f.returnCode))return '车次号须为G/D/C/Z/T/K加1–4位数字，例如C2001；数字不能以0开头。';
+ if(f.mode==='round'&&f.code===f.returnCode)return '去程与返程必须使用不同车次号。';
+ const others=S.services.filter(x=>!exclude.includes(x.id));
+ if(others.some(x=>x.code===f.code||f.mode==='round'&&x.code===f.returnCode))return '车次号已被其他班次使用，请修改或填入未占用建议号。';
+ const d=durMin(l,modelOf(t.modelId)),slots=[{start:f.depMin,end:f.depMin+d+f.turnMin}];
+ if(f.mode==='round'){
+  if(!Number.isInteger(f.returnMin)||f.returnMin<0||f.returnMin>=1440||![0,1].includes(f.returnDay))return '请输入有效返程时间与当日/次日。';
+  const ret=f.returnMin+f.returnDay*1440;
+  if(ret<f.depMin+d+f.turnMin)return '返程过早：去程到达并完成'+f.turnMin+'分钟整备后才能发车。';
+  if(ret+d+f.turnMin>f.depMin+1440)return '返程无法在下一次每日去程前完成整备，请提前返程、更换车组或改为单程。';
+  slots.push({start:ret,end:ret+d+f.turnMin});
+ }
+ // Daily recurrence requires comparing previous/next day, not just same-day clock values.
+ for(const sv of others.filter(x=>x.trainUid===f.trainUid)){
+  const start=sv.depMin,end=start+scheduleDuration(sv)+sv.turnMin;
+  for(const shift of [-2880,-1440,0,1440,2880])for(const slot of slots)if(slot.start<end+shift&&start+shift<slot.end)return '担当车组与 '+sv.code+' 的运行/整备时间冲突（含跨日），请调整时刻或更换车组。';
+ }
+ if(d+f.turnMin>1440)return '单程运行加整备超过24小时，无法每日开行，请换用更快车组。';
+ return null;
+}
+function submitSvc12(){
+ if(saveLocked){openExternal();return;}
+ const edit=svcEdit12;if(!edit)return;
+ if(S.services.some(x=>edit.ids.includes(x.id)&&x.status==='running')){showSvcError12('班次已经发车，请到达后调整。');return;}
+ const f=form12(),error=checkPlan12(f,edit.ids);if(error){showSvcError12(error);return;}
+ if(edit.retId&&f.mode==='single'&&!confirm('改为单程会移除关联返程，去程ID与经营进度保留。确认保存？'))return;
+ const oldOut=edit.outId?S.services.find(x=>x.id===edit.outId):null,oldRet=edit.retId?S.services.find(x=>x.id===edit.retId):null;
+ if(edit.outId&&!oldOut){showSvcError12('班次已不存在，请关闭后重新打开。');return;}
+ const idFor=old=>old?.id||'sv'+(++S.ids.svc);const outId=idFor(oldOut),retId=f.mode==='round'?idFor(oldRet):null;
+ const pairId=f.mode==='round'?(edit.pairId||'rt'+outId.slice(2)):null;
+ const start=nextDay12(f.depMin),returnStart=Math.floor(start/1440)*1440+f.returnMin+f.returnDay*1440;
+ const common={lineId:f.lineId,trainUid:f.trainUid,turnMin:f.turnMin,pairId};
+ const out=resetLeg12({...oldOut,...common,id:outId,code:f.code,direction:f.direction,depMin:f.depMin,startAbs:start,nextDepAbs:start,leg:pairId?'outbound':'single'});
+ const legs=[out];
+ if(f.mode==='round')legs.push(resetLeg12({...oldRet,...common,id:retId,code:f.returnCode,direction:-f.direction,depMin:f.returnMin,startAbs:returnStart,nextDepAbs:returnStart,leg:'return'}));
+ S.services=S.services.filter(x=>!edit.ids.includes(x.id));S.services.push(...legs);S.scheduleSchema=2;
+ save();closeModal();renderView();toast((oldOut?'运行图已调整':'已安排')+'：'+legs.map(x=>x.code).join(' / ')+'，保留现有经营进度','ok');
+}
+function showSvcError12(message){$('svcError12').textContent=message;$('svcError12').style.display='block';$('svcError12').scrollIntoView({block:'nearest'});}
+function delSvc(id){
+ const sv=S.services.find(x=>x.id===id);if(!sv)return;const legs=group12(sv);
+ if(legs.some(x=>x.status==='running')){toast('请等本组列车到达后再删除','bad');return;}
+ if(!confirm(legs.length===2?'确认删除 '+legs.map(x=>x.code).join(' / ')+' 这对往返？将同时删除去返两趟。':'确认删除 '+sv.code+'？'))return;
+ const ids=new Set(legs.map(x=>x.id));S.services=S.services.filter(x=>!ids.has(x.id));save();renderView();toast('已从运行图删除');
+}
+function quickDispatch(){switchTab('sv');openSvc();}
+const originalDur12=durMin;durMin=function(line,model){return Math.round(line.len/Math.min(line.speed,model.speed)*60+line.stations.length*4);};
+const newStateBefore12=newState;newState=function(){const d=newStateBefore12();migrateSchedule12(d);return d;};
+
 /* ================= 启动 ================= */
 if(!load()){S=newState();S.speed=0;toast('👋 欢迎上任集团总经理！你从京津城际与一列和谐号起步，逐步打造覆盖全国的铁路集团。','ok');}
-renderTabs();renderClock();renderView();
+migrateSchedule12(S);renderTabs();renderClock();renderView();
 </script>
 </body>
 </html>
