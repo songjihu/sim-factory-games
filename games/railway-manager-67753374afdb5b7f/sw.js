@@ -1,4 +1,4 @@
-const CACHE='railway-G207-v1.2.1';
+const CACHE='railway-G207-v1.2.2';
 const ASSETS=['./','./index.html','./assets/terminal.webp','./assets/mountain.webp','./assets/depot.webp'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('railway-G207-')&&k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
