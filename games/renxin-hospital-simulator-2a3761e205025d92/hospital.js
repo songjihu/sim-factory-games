@@ -1,4 +1,4 @@
-// Hospital redesign: presentation layer, original clinical rules retained.
+﻿// Hospital redesign: presentation layer, original clinical rules retained.
 let caseStep='history';
 const oldClinic=pgClinic,oldReports=pgReports,oldDept=pgDept,oldSave=pgSave,oldRender=render;
 const stepNames=[['history','问诊'],['exam','查体'],['tests','检查'],['diagnosis','诊断'],['treatment','处置']];
@@ -31,7 +31,7 @@ render=function(){
  const jacket=document.querySelector('.case-jacket'),cards=[...jacket.children].filter(n=>n.classList.contains('card'));
  if(cards.length<2)return;
  const p=S.patients[S.active],d=DIS_MAP[p.dis];
- if(p.phase==='treat')caseStep='treatment'; else if(caseStep==='treatment')caseStep='diagnosis';
+ if(p.phase==='treat'&&!['history','exam','treatment'].includes(caseStep))caseStep='treatment'; else if(p.phase!=='treat'&&caseStep==='treatment')caseStep='diagnosis';
  const slots={history:cards[1],exam:cards[2],tests:p.phase==='work'?cards[3]:null,diagnosis:p.phase==='work'?cards[4]:null,treatment:p.phase==='treat'?cards[3]:null};
  const nav=document.createElement('div');nav.className='workflow';
  nav.innerHTML=stepNames.map(([id,label],i)=>{const complete=id==='history'?p.hIdx>=d.h.length:id==='exam'?p.sIdx>=d.s.length:id==='tests'?Object.keys(p.tests).length>0:id==='diagnosis'?p.phase==='treat':false;return `<button class="${caseStep===id?'current ':''}${complete?'complete':''}" onclick="selectCaseStep('${id}')" ${!slots[id]?'disabled':''}><b>${complete?'✓':String(i+1).padStart(2,'0')}</b>${label}</button>`;}).join('');
@@ -61,3 +61,5 @@ window.addEventListener('storage',e=>{if(e.key===SAVE_KEY&&e.newValue&&e.newValu
 // Existing prototype saves remain readable in the same browser origin.
 if(!localStorage.getItem(SAVE_KEY)){try{const legacy=JSON.parse(localStorage.getItem('renxin_doctor_v2'));if(legacy){validateHospitalSave(legacy);S=legacy;save();closeModal();}}catch(e){}}
 render();
+
+
