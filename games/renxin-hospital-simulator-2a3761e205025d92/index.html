@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>仁心医院 · 医院模拟器 v1.0.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+ --bg:#f4f7f9; --card:#ffffff; --line:#e8eef2; --line2:#d8e2e9;
+ --txt:#1b2a35; --dim:#6b7f8d; --dim2:#9aacb8;
+ --teal:#2a9d8f; --teal-d:#21867a; --teal-l:#e8f6f4; --teal-b:#bfe6e1;
+ --red:#d64545; --red-l:#fdf0f0; --red-b:#f5c6c6;
+ --amber:#c07a1a; --amber-l:#fdf6e9; --amber-b:#f2e0bc;
+ --green:#2f9e63; --green-l:#eef9f2; --green-b:#c4e8d3;
+ --blue:#3e77c9; --blue-l:#eef4fc; --blue-b:#c9dcf3;
+ --purple:#7a5cc4;
+ --sh:0 1px 3px rgba(27,42,53,.05),0 4px 14px rgba(27,42,53,.04);
+}
+html,body{height:100%}
+body{
+ background:var(--bg);color:var(--txt);font-size:14px;overflow:hidden;
+ font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+ -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-variant-numeric:tabular-nums}
+.app{height:100vh;display:flex;flex-direction:column;max-width:900px;margin:0 auto;background:var(--bg);position:relative}
+@media(max-width:520px){
+ .chip2{padding:4px 7px;font-size:10.5px}
+ .chip2 b{font-size:11.5px}
+ .hdr{gap:8px;padding:10px 12px}
+ .hdr-t small{font-size:10px}
+ .chip2.rep{display:none}
+}
+@media(min-width:901px){body{background:#e9eef2}.app{box-shadow:0 0 40px rgba(27,42,53,.08);border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+/* ---------- header ---------- */
+.hdr{
+ flex:none;display:flex;align-items:center;gap:10px;padding:11px 15px;
+ background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+ position:relative;z-index:5;
+}
+.hdr .logo{
+ width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex:none;
+ background:linear-gradient(135deg,#8fd3ca,#b7e3dd);box-shadow:0 2px 8px rgba(42,157,143,.22);
+}
+.hdr-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.hdr-t b{font-size:15.5px;font-weight:700;letter-spacing:.2px;line-height:1.15;white-space:nowrap}
+.hdr-t small{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.chip2{
+ display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:9px;
+ background:#f7fafb;border:1px solid var(--line);font-size:11.5px;color:var(--dim);
+}
+.chip2 b{font-size:12.5px;color:var(--txt)}
+.icon-btn{
+ width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;
+ background:#f7fafb;border:1px solid var(--line);color:var(--dim);
+}
+.icon-btn:active{background:#eef3f6}
+
+/* ---------- content ---------- */
+.content{flex:1;overflow-y:auto;padding:14px 15px 20px;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-thumb{background:#d3dee6;border-radius:6px}
+
+.pg-title{font-size:21px;font-weight:700;letter-spacing:.3px;margin:4px 0 5px}
+.pg-sub{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:14px}
+
+.card{
+ background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;
+ box-shadow:var(--sh);margin-bottom:12px;
+}
+.card.tight{padding:12px 14px}
+.card-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
+.card-h .ico{font-size:15px;opacity:.9}
+.card-h .right{margin-left:auto;font-size:11.5px;color:var(--dim);font-weight:400}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{
+ background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--sh);
+}
+.stat .h{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);margin-bottom:8px}
+.stat .v{font-size:21px;font-weight:700;letter-spacing:.3px}
+
+.bar{height:8px;border-radius:8px;background:#edf2f6;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#3fb8a9,#2a9d8f);transition:width .45s ease}
+.bar.amber i{background:linear-gradient(90deg,#e8b656,#d99a2b)}
+.bar.red i{background:linear-gradient(90deg,#e87474,#d64545)}
+.bar.blue i{background:linear-gradient(90deg,#6aa4e8,#3e77c9)}
+
+.badge{
+ font-size:10.5px;padding:2px 8px;border-radius:20px;border:1px solid;font-weight:600;white-space:nowrap;
+}
+.badge.g{background:var(--green-l);color:var(--green);border-color:var(--green-b)}
+.badge.a{background:var(--amber-l);color:var(--amber);border-color:var(--amber-b)}
+.badge.r{background:var(--red-l);color:var(--red);border-color:var(--red-b)}
+.badge.t{background:var(--teal-l);color:var(--teal-d);border-color:var(--teal-b)}
+.badge.b{background:var(--blue-l);color:var(--blue);border-color:var(--blue-b)}
+.badge.d{background:#f4f7f9;color:var(--dim);border-color:var(--line2)}
+
+.btnp{
+ display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+ padding:11px 14px;border-radius:11px;font-size:14px;font-weight:600;
+ background:linear-gradient(180deg,#34a99b,#21867a);color:#fff;
+ box-shadow:0 3px 10px rgba(42,157,143,.26);transition:.15s;
+}
+.btnp:active{transform:scale(.985);filter:brightness(.96)}
+.btnp:disabled{background:#e6edf1;color:#a8b7c2;box-shadow:none}
+.btno{
+ display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+ padding:10px 14px;border-radius:11px;font-size:13.5px;
+ background:#fff;border:1px solid var(--line2);color:#3c5260;
+}
+.btno:active{background:#f5f9fa}
+.btno:disabled{opacity:.5}
+
+/* ---------- queue / patient rows ---------- */
+.plist{display:flex;flex-direction:column;gap:9px}
+.prow{
+ display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:13px;
+ background:#fff;border:1px solid var(--line);box-shadow:var(--sh);transition:.15s;text-align:left;width:100%;
+}
+.prow:active{background:#fafcfd}
+.prow.crit{border-color:var(--red-b);background:linear-gradient(90deg,#fdf6f6,#fff 40%)}
+.prow .av{
+ width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none;
+ background:#f0f5f8;border:1px solid var(--line);
+}
+.prow.crit .av{background:var(--red-l);border-color:var(--red-b)}
+.prow .info{flex:1;min-width:0}
+.prow .n1{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
+.prow .nm{font-size:14.5px;font-weight:600}
+.prow .age{font-size:11.5px;color:var(--dim)}
+.prow .cc{font-size:12px;color:#4d6373;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow .go{font-size:11.5px;color:var(--teal);font-weight:600;flex:none}
+
+/* ---------- case ---------- */
+.phead{display:flex;align-items:flex-start;gap:11px;margin-bottom:11px}
+.phead .av{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:21px;background:#f0f5f8;border:1px solid var(--line);flex:none}
+.phead .nm{font-size:17px;font-weight:700}
+.phead .meta{font-size:11.5px;color:var(--dim);margin-top:3px}
+.phead .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.phead .tags .badge{white-space:normal;line-height:1.5}
+
+.vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.v{border-radius:10px;padding:8px 9px;background:#f8fafb;border:1px solid #ecf1f5;text-align:center}
+.v .k{font-size:10px;color:var(--dim2);margin-bottom:2px}
+.v .val{font-size:14px;font-weight:650;color:#243542}
+.v.abn{background:var(--red-l);border-color:var(--red-b)}
+.v.abn .val{color:var(--red)}
+.v.warn{background:var(--amber-l);border-color:var(--amber-b)}
+.v.warn .val{color:var(--amber)}
+
+/* 问诊 Q&A */
+.qa{border-radius:12px;background:#f7fafb;border:1px solid #edf2f6;padding:11px 13px;margin-bottom:8px;animation:fin .28s ease}
+@keyframes fin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.qa .q{font-size:12.5px;color:var(--teal-d);font-weight:600;margin-bottom:4px}
+.qa .a{font-size:13px;color:#33475a;line-height:1.62}
+.askmore{
+ display:flex;align-items:center;gap:9px;width:100%;padding:12px 13px;border-radius:12px;
+ background:var(--teal-l);border:1.5px solid var(--teal-b);text-align:left;transition:.15s;
+}
+.askmore:active{background:#dcf1ee}
+.askmore .t b{display:block;font-size:13.5px;color:#1d6f66;margin-bottom:2px}
+.askmore .t span{font-size:11.5px;color:#4f8f88}
+.askmore .plus{margin-left:auto;font-size:18px;color:var(--teal);font-weight:600}
+
+.testgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tbtn{
+ padding:9px 10px;border-radius:11px;background:#fff;border:1px solid var(--line2);
+ display:flex;flex-direction:column;gap:2px;text-align:left;transition:.13s;
+}
+.tbtn:active{background:#f6fafb}
+.tbtn .n{font-size:12.5px;font-weight:550;color:#33475a}
+.tbtn .c{font-size:10.5px;color:var(--dim2)}
+.tbtn.done{background:#f2f9f4;border-color:var(--green-b)}
+.tbtn.done .c{color:var(--green)}
+
+.dxopt{
+ width:100%;padding:11px 13px;border-radius:11px;background:#fff;border:1px solid var(--line2);
+ font-size:13px;text-align:left;margin-bottom:7px;transition:.13s;display:flex;align-items:center;gap:8px;
+}
+.dxopt:active{background:#f6fafb}
+.dxopt .rd{width:15px;height:15px;border-radius:50%;border:1.5px solid #c9d6df;flex:none}
+.dxopt.sel{border-color:var(--teal);background:var(--teal-l);font-weight:600;color:#1d6f66}
+.dxopt.sel .rd{border-color:var(--teal);background:var(--teal);box-shadow:inset 0 0 0 3px #fff}
+.dxopt.off{opacity:.42;text-decoration:line-through;pointer-events:none}
+
+.treat{
+ width:100%;padding:12px 13px;border-radius:12px;background:#fff;border:1px solid var(--line2);
+ font-size:13px;text-align:left;margin-bottom:8px;transition:.13s;display:flex;align-items:flex-start;gap:9px;line-height:1.55;
+}
+.treat:active{background:#f6fafb;border-color:var(--teal-b)}
+.treat .ar{color:var(--teal);font-weight:700;flex:none}
+.treat.op{border-color:var(--amber-b);background:#fffdf7}
+
+/* reports */
+.rep{display:flex;align-items:center;gap:11px;padding:13px;border-radius:13px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:9px}
+.rep .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;background:var(--teal-l);border:1px solid var(--teal-b);flex:none}
+.rep .tx{flex:1;min-width:0}
+.rep .t1{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;margin-bottom:3px}
+.rep .t2{font-size:12px;color:#4d6373;line-height:1.55}
+
+.rec{display:flex;gap:11px;padding:13px;border-radius:13px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:9px}
+.rec .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none}
+.rec .tx{flex:1;min-width:0}
+.rec .t1{font-size:13.5px;font-weight:600;margin-bottom:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rec .t2{font-size:11.5px;color:var(--dim);line-height:1.6}
+
+.up{display:flex;align-items:center;gap:11px;padding:13px;border-radius:13px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:9px}
+.up .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;background:#f2f7f9;border:1px solid var(--line);flex:none}
+.up .tx{flex:1;min-width:0}
+.up .t1{font-size:13.5px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:7px}
+.up .t2{font-size:11px;color:var(--dim);line-height:1.5}
+.pips{display:flex;gap:3px;margin-left:auto}
+.pips i{width:10px;height:4px;border-radius:2px;background:#e4ecf1}
+.pips i.on{background:var(--teal)}
+.upbtn{
+ padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;flex:none;
+ background:var(--teal-l);border:1px solid var(--teal-b);color:var(--teal-d);
+}
+.upbtn:disabled{background:#f4f7f9;border-color:var(--line);color:#aab8c2}
+
+.empty{text-align:center;padding:44px 16px;color:var(--dim2);font-size:13px;line-height:2}
+.empty .big{font-size:40px;display:block;margin-bottom:10px;opacity:.45}
+
+/* ---------- tabbar ---------- */
+.tabbar{
+ flex:none;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+ background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+ box-shadow:0 -2px 12px rgba(27,42,53,.05);z-index:6;
+}
+.tabbar button{
+ display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:10px;
+ font-size:10.5px;color:#8c9fac;transition:.15s;
+}
+.tabbar button .ti{font-size:18px;line-height:1;filter:grayscale(.55);opacity:.72}
+.tabbar button.on{color:var(--teal-d);font-weight:600;background:var(--teal-l)}
+.tabbar button.on .ti{filter:none;opacity:1}
+.tabbar button:active{background:#f2f7f9}
+
+/* ---------- modal / toast ---------- */
+#toastRoot{position:fixed;top:70px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:120;pointer-events:none;align-items:center;width:100%;padding:0 16px}
+.toast{
+ padding:9px 15px;border-radius:11px;background:rgba(27,42,53,.92);color:#fff;font-size:12.5px;
+ box-shadow:0 8px 24px rgba(27,42,53,.2);animation:tin .22s ease;max-width:420px;line-height:1.5;text-align:center;
+}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.toast.ok{background:rgba(33,134,122,.95)}
+.toast.bad{background:rgba(198,54,54,.95)}
+.toast.out{opacity:0;transform:translateY(-8px);transition:.28s}
+
+.mask{position:fixed;inset:0;background:rgba(24,38,50,.42);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:100;padding:18px}
+.modal{
+ width:min(480px,100%);max-height:88vh;overflow-y:auto;background:#fff;border-radius:18px;padding:22px 20px;
+ box-shadow:0 24px 60px rgba(24,38,50,.28);animation:min .26s cubic-bezier(.2,.9,.3,1.15);
+}
+@keyframes min{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.modal .sub{font-size:12px;color:var(--dim);margin-bottom:15px;line-height:1.6}
+.modal .foot{margin-top:16px;display:flex;gap:9px}
+.modal .foot .btnp{flex:1}
+.res-big{font-size:19px;font-weight:700;margin:8px 0 12px;display:flex;align-items:center;gap:9px}
+.res-line{font-size:13px;line-height:1.9;color:#33475a}
+.res-line b{color:#12212f}
+.pearl{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--teal-l);border-left:3px solid var(--teal);font-size:12.5px;line-height:1.75;color:#255e58}
+.pearl .h{color:var(--teal-d);font-weight:700;font-size:11px;letter-spacing:1px;display:block;margin-bottom:5px}
+.rewards{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+.rw{padding:5px 11px;border-radius:9px;background:#f7fafb;border:1px solid #e8eef2;font-size:12px;color:#3c5260}
+.rw.up{background:var(--green-l);border-color:var(--green-b);color:var(--green)}
+.rw.dn{background:var(--red-l);border-color:var(--red-b);color:var(--red)}
+
+/* ---------- 手术 / 抢救 ---------- */
+.surg-bar{height:12px;border-radius:9px;background:#edf2f6;overflow:hidden;margin:14px 0 8px;position:relative}
+.surg-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#3fb8a9,#21867a);transition:width .12s linear}
+.surg-bar.hot i{background:linear-gradient(90deg,#f0a04b,#d64545)}
+.surg-log{font-size:12px;color:var(--dim);line-height:1.9;min-height:56px}
+.surg-log div{animation:fin .2s ease}
+.cd{
+ font-size:34px;font-weight:800;letter-spacing:1px;text-align:center;margin:2px 0 4px;
+ font-variant-numeric:tabular-nums;color:#243542;
+}
+.cd.hot{color:var(--red)}
+.rstep{font-size:13.5px;font-weight:600;line-height:1.55;margin:6px 0 10px;color:#1b2a35}
+.ropt{
+ display:block;width:100%;padding:11px 13px;border-radius:11px;background:#fff;border:1px solid var(--line2);
+ font-size:13px;text-align:left;margin-bottom:7px;transition:.12s;
+}
+.ropt:active{background:#f6fafb}
+.ropt.ok{border-color:var(--green-b);background:var(--green-l);color:var(--green);font-weight:600}
+.ropt.no{border-color:var(--red-b);background:var(--red-l);color:var(--red)}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.dots i{width:22px;height:4px;border-radius:3px;background:#e4ecf1}
+.dots i.on{background:var(--teal)}
+.dots i.no{background:var(--red)}
+</style>
+<meta name="theme-color" content="#153e46"><link rel="stylesheet" href="hospital.css"></head>
+<body>
+<div class="app">
+  <header class="hdr">
+    <div class="logo">✚</div>
+    <div class="hdr-t">
+      <b>仁心医院</b>
+      <small id="hdrSub">内科 · 第 1 天 · 实习医师</small>
+    </div>
+    <div class="hdr-r">
+      <div class="chip2">💰<b id="hCash" class="mono">¥0</b></div>
+      <div class="chip2 rep">⭐<b id="hRep" class="mono">50</b></div>
+      <button class="icon-btn" onclick="switchTab('save')" title="存档与设置">⏏</button>
+    </div>
+  </header>
+
+  <div class="duty-strip"></div><main class="content" id="content"></main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="overview" onclick="switchTab('overview')"><span class="ti">🏠</span><span>值班大厅</span></button>
+    <button data-tab="clinic" onclick="switchTab('clinic')"><span class="ti">🩺</span><span>门诊诊室</span></button>
+    <button data-tab="reports" onclick="switchTab('reports')"><span class="ti">📄</span><span>医技中心</span></button>
+    <button data-tab="records" onclick="switchTab('records')"><span class="ti">📁</span><span>病历档案</span></button>
+    <button data-tab="dept" onclick="switchTab('dept')"><span class="ti">⚙️</span><span>医务办公</span></button>
+    <button data-tab="save" onclick="switchTab('save')"><span class="ti">💾</span><span>存档设置</span></button>
+  </nav>
+</div>
+
+<div id="toastRoot"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* ---------------- 检查项目库 ---------------- */
+const TESTS = [
+  {id:'cbc',    name:'血常规',        cost:35,  min:20, ico:'🩸'},
+  {id:'bio',    name:'生化全套',      cost:120, min:40, ico:'🧪'},
+  {id:'trop',   name:'心肌标志物',    cost:180, min:30, ico:'❤️'},
+  {id:'ecg',    name:'心电图',        cost:30,  min:10, ico:'📈'},
+  {id:'cxr',    name:'胸部X线',       cost:80,  min:20, ico:'🫁'},
+  {id:'ct',     name:'胸部CT',        cost:420, min:45, ico:'🖥'},
+  {id:'headct', name:'头颅CT',        cost:380, min:30, ico:'🧠'},
+  {id:'us',     name:'腹部超声',      cost:160, min:25, ico:'🔊'},
+  {id:'urine',  name:'尿常规',        cost:25,  min:20, ico:'🧫'},
+  {id:'gas',    name:'动脉血气',      cost:90,  min:15, ico:'💨'},
+  {id:'ddimer', name:'D-二聚体+凝血', cost:150, min:40, ico:'🩹'},
+  {id:'glu',    name:'快速血糖',      cost:15,  min:5,  ico:'🍬'},
+  {id:'amylase',name:'淀粉酶',        cost:70,  min:35, ico:'🥣'},
+  {id:'hcg',    name:'血β-hCG',       cost:60,  min:30, ico:'🤰'},
+  {id:'lactate',name:'血乳酸',        cost:80,  min:20, ico:'⚗️'}
+];
+const TEST_MAP = {};
+TESTS.forEach(t=>TEST_MAP[t.id]=t);
+
+/* ---------------- 疾病库（真实临床情景） ---------------- */
+const DISEASES = [
+{id:'stemi',name:'急性ST段抬高型心肌梗死',dept:'心血管内科',diff:3,critical:true,
+ cc:'胸骨后压榨样疼痛 2 小时',
+ vitals:{T:'36.6',P:'104',R:'22',BP:'106/68',SpO2:'95'},
+ h:['胸骨后压榨样疼痛持续 2 小时，休息及含服硝酸甘油均不缓解','疼痛向左肩、左前臂尺侧及小指放射','伴大汗、恶心呕吐及濒死感','高血压 12 年、吸烟 30 年，未规律服药'],
+ s:['急性痛苦面容，面色苍白，全身大汗','心率 104 次/分，心音低钝，可闻及 S4','双肺呼吸音清，未闻及干湿性啰音','四肢湿冷，毛细血管再充盈时间延长'],
+ t:{ecg:'V1–V4 导联 ST 段弓背向上抬高 0.3–0.5 mV，可见病理性 Q 波',
+    trop:'肌钙蛋白 I 8.6 ng/mL（↑↑），CK-MB 86 U/L',
+    cbc:'白细胞 11.2×10⁹/L，中性粒细胞 82%',
+    cxr:'心影不大，双肺野清晰'},
+ tx:[{l:'立即启动导管室行急诊 PCI（门球时间 <90 min）',ok:true},
+     {l:'抗血小板+抗凝+他汀，无 PCI 条件时静脉溶栓后转运',ok:true},
+     {l:'舌下含服硝酸甘油后留观',ok:false},
+     {l:'静脉抗生素抗感染治疗',ok:false}],
+ fee:880,exp:70,
+ pearl:'STEMI 的核心是"时间就是心肌"：确诊后 90 分钟内开通梗死相关血管，每延迟 30 分钟死亡风险显著上升。'},
+
+{id:'angina',name:'稳定型心绞痛',dept:'心血管内科',diff:2,critical:false,
+ cc:'活动后胸闷 3 个月，加重 1 周',
+ vitals:{T:'36.5',P:'78',R:'18',BP:'148/92',SpO2:'97'},
+ h:['快步走 300 米或上三楼时出现胸骨后压闷，休息 3–5 分钟可缓解','近 1 周发作频繁，稍活动即可诱发','无夜间静息痛，无大汗','糖尿病 8 年，血脂偏高'],
+ s:['心界不大，心率 78 次/分，律齐，各瓣膜区未闻及杂音','双肺呼吸音清','双下肢无水肿，足背动脉搏动良好'],
+ t:{ecg:'窦性心律，V4–V6 导联 ST 段水平型压低 0.1 mV，T 波低平',
+    trop:'肌钙蛋白 I <0.01 ng/mL（正常）',
+    bio:'LDL-C 4.2 mmol/L，空腹血糖 8.1 mmol/L'},
+ tx:[{l:'阿司匹林+他汀+β受体阻滞剂，完善冠脉 CTA / 造影评估',ok:true},
+     {l:'即刻静脉溶栓治疗',ok:false},
+     {l:'口服质子泵抑制剂抑酸护胃',ok:false},
+     {l:'嘱回家休息，无需用药',ok:false}],
+ fee:260,exp:30,
+ pearl:'稳定型心绞痛的特点是"劳力诱发、休息缓解"，肌钙蛋白阴性可排除急性心梗，但仍需评估冠脉狭窄程度。'},
+
+{id:'dissection',name:'主动脉夹层',dept:'心血管内科',diff:4,critical:true,
+ cc:'突发撕裂样胸背痛 1 小时',
+ vitals:{T:'36.8',P:'112',R:'24',BP:'178/102',SpO2:'96'},
+ h:['突发前胸撕裂样剧痛，向后背及腰部放射，持续不缓解','疼痛剧烈难以忍受，伴大汗','高血压 15 年，血压控制不佳','无发热、无咳嗽'],
+ s:['痛苦面容，烦躁不安，大汗淋漓','双上肢血压相差 28 mmHg','心率 112 次/分，主动脉瓣区可闻及舒张期杂音','腹部柔软，未触及搏动性包块'],
+ t:{ct:'主动脉弓至降主动脉可见内膜片及真假双腔，升主动脉增宽至 52 mm',
+    cxr:'纵隔影增宽，主动脉结突出',
+    ecg:'窦性心动过速，未见 ST 段抬高',
+    ddimer:'D-二聚体 6.8 mg/L（↑↑）'},
+ tx:[{l:'控制血压心率（静脉艾司洛尔+硝普钠），急诊血管外科会诊手术',ok:true},
+     {l:'立即抗凝溶栓治疗',ok:false},
+     {l:'口服硝酸甘油后回家观察',ok:false},
+     {l:'大剂量补液升压',ok:false}],
+ fee:1200,exp:90,
+ pearl:'撕裂样痛+双上肢血压不对称+纵隔增宽，是主动脉夹层的经典三联征。确诊前禁忌抗凝溶栓，否则致命。'},
+
+{id:'afib',name:'快速型心房颤动',dept:'心血管内科',diff:2,critical:false,
+ cc:'阵发性心悸 6 小时',
+ vitals:{T:'36.7',P:'138',R:'20',BP:'126/80',SpO2:'97'},
+ h:['6 小时前突发心悸，自觉心跳快而不规则','轻度乏力、气短，无胸痛及晕厥','既往甲亢病史，间断服药','饮浓茶后发作'],
+ s:['心率 142 次/分，节律绝对不齐，第一心音强弱不等','脉搏短绌，脉率 118 次/分','双肺呼吸音清，未闻及杂音'],
+ t:{ecg:'P 波消失，代之以 f 波，RR 间期绝对不齐，心室率 142 次/分',
+    bio:'TSH 0.02 mIU/L（↓），FT4 升高',
+    cbc:'大致正常'},
+ tx:[{l:'控制心室率（β受体阻滞剂）+ 评估 CHA₂DS₂-VASc 抗凝',ok:true},
+     {l:'血流动力学不稳定时同步直流电复律',ok:true},
+     {l:'静脉推注大剂量地高辛负荷量',ok:false},
+     {l:'静脉抗生素治疗',ok:false}],
+ fee:320,exp:35,
+ pearl:'房颤处理三问：血流动力学是否稳定？是否需要抗凝？是否需要复律？甲亢是常见的可逆性诱因。'},
+
+{id:'chf',name:'慢性心衰急性加重',dept:'心血管内科',diff:3,critical:false,
+ cc:'活动后气促 1 周，夜间不能平卧 2 天',
+ vitals:{T:'36.4',P:'96',R:'26',BP:'142/88',SpO2:'90'},
+ h:['1 周来活动耐量下降，走 50 米即气促','夜间阵发性呼吸困难，需高枕卧位','双下肢对称性凹陷性水肿','冠心病史 10 年，曾行 PCI'],
+ s:['端坐呼吸，口唇轻度发绀','双肺底可闻及湿啰音，肺底叩诊浊音','心界向左下扩大，心率 96 次/分，可闻及 S3 奔马律','双下肢中度凹陷性水肿，颈静脉怒张'],
+ t:{cxr:'心影增大，双侧肺门影增浓，可见 Kerley B 线及少量胸腔积液',
+    bio:'NT-proBNP 6800 pg/mL（↑↑），肌酐 132 μmol/L，血钾 4.1 mmol/L',
+    gas:'pH 7.46，PaO₂ 62 mmHg，PaCO₂ 34 mmHg',
+    ecg:'窦性心律，陈旧性前壁心梗图形'},
+ tx:[{l:'半坐位、高流量吸氧，静脉利尿（呋塞米）+ 硝酸酯扩血管',ok:true},
+     {l:'快速静脉补液 1000 mL 扩容',ok:false},
+     {l:'大剂量 β 受体阻滞剂静脉注射',ok:false},
+     {l:'口服抗生素',ok:false}],
+ fee:420,exp:45,
+ pearl:'急性心衰禁忌快速补液。NT-proBNP 显著升高 + 肺淤血影像 + 利尿有效，是容量负荷过重的有力证据。'},
+
+{id:'cap',name:'社区获得性肺炎',dept:'呼吸内科',diff:1,critical:false,
+ cc:'发热咳嗽 3 天',
+ vitals:{T:'38.9',P:'102',R:'24',BP:'118/72',SpO2:'94'},
+ h:['3 天前受凉后出现发热，最高 39.2℃，伴畏寒','咳嗽、咳黄色脓性痰，量中等','右侧胸痛，深吸气时加重','无咯血、无夜间盗汗'],
+ s:['急性热病容，口唇无发绀','右下肺呼吸音减低，可闻及湿性啰音','心率 102 次/分，律齐'],
+ t:{cbc:'白细胞 15.6×10⁹/L，中性粒细胞 88%，CRP 96 mg/L',
+    cxr:'右下肺大片斑片状实变影，可见支气管充气征',
+    gas:'pH 7.45，PaO₂ 78 mmHg',
+    bio:'肝肾功能大致正常'},
+ tx:[{l:'经验性抗感染（β-内酰胺类 ± 大环内酯类）+ 化痰对症',ok:true},
+     {l:'单纯退热对症，不使用抗生素',ok:false},
+     {l:'立即行胸腔闭式引流',ok:false},
+     {l:'抗结核四联治疗',ok:false}],
+ fee:340,exp:35,
+ pearl:'社区获得性肺炎的 CURB-65 评分（意识、尿素氮、呼吸频率、血压、年龄）决定门诊治疗还是住院治疗。'},
+
+{id:'asthma',name:'支气管哮喘急性发作',dept:'呼吸内科',diff:3,critical:true,
+ cc:'喘息发作 4 小时，说话不能成句',
+ vitals:{T:'36.8',P:'124',R:'32',BP:'132/84',SpO2:'88'},
+ h:['自幼支气管哮喘，季节性发作','4 小时前接触花粉后喘息加重，吸入沙丁胺醇无效','不能完整说一句话，烦躁不安','无发热、无咳痰'],
+ s:['端坐前倾位，大汗，辅助呼吸肌参与呼吸','双肺满布哮鸣音，呼气相明显延长','心率 124 次/分，可触及奇脉'],
+ t:{gas:'pH 7.31，PaO₂ 58 mmHg，PaCO₂ 48 mmHg（↑，提示呼吸肌疲劳）',
+    cbc:'嗜酸性粒细胞轻度升高',
+    cxr:'双肺透亮度增高，膈肌低平'},
+ tx:[{l:'持续雾化 β₂ 激动剂+异丙托溴铵，全身糖皮质激素，氧疗，必要时无创通气',ok:true},
+     {l:'静脉注射镇静剂缓解烦躁',ok:false},
+     {l:'口服抗生素治疗',ok:false},
+     {l:'皮下注射吗啡镇静止喘',ok:false}],
+ fee:560,exp:60,
+ pearl:'哮喘发作中 PaCO₂ 由低变正常甚至升高，是呼吸肌疲劳的危急信号，提示即将发生呼吸衰竭。'},
+
+{id:'pe',name:'急性肺栓塞',dept:'呼吸内科',diff:4,critical:true,
+ cc:'突发呼吸困难伴晕厥 1 小时',
+ vitals:{T:'37.2',P:'118',R:'30',BP:'92/60',SpO2:'88'},
+ h:['1 小时前如厕后突发气促，随后晕厥一次','伴胸痛、心悸，无咯血','左下肢肿胀 5 天（长途飞行后）','口服避孕药 3 年'],
+ s:['烦躁不安，口唇发绀','呼吸急促，双肺呼吸音清','心率 118 次/分，P2 亢进','左小腿肿胀，周径较对侧粗 3 cm，Homan 征阳性'],
+ t:{gas:'pH 7.47，PaO₂ 55 mmHg，PaCO₂ 28 mmHg，肺泡-动脉氧分压差明显增大',
+    ddimer:'D-二聚体 9.2 mg/L（↑↑）',
+    ct:'CTPA 示右肺动脉主干及分支充盈缺损',
+    ecg:'SⅠQⅢTⅢ 图形，窦性心动过速'},
+ tx:[{l:'绝对卧床、高流量氧疗，立即抗凝（低分子肝素），评估溶栓指征',ok:true},
+     {l:'立即按摩患肢促进血液回流',ok:false},
+     {l:'静脉利尿+扩血管治疗',ok:false},
+     {l:'口服抗生素治疗',ok:false}],
+ fee:760,exp:70,
+ pearl:'"长途旅行 + 单侧下肢肿胀 + 突发气促"，要想到肺栓塞。疑似肺栓塞时严禁按摩患肢，以免血栓脱落。'},
+
+{id:'copd',name:'慢阻肺急性加重',dept:'呼吸内科',diff:2,critical:false,
+ cc:'咳嗽咳痰 10 年，气促加重 3 天',
+ vitals:{T:'37.6',P:'98',R:'26',BP:'134/78',SpO2:'88'},
+ h:['吸烟 40 年，每日 20 支','慢性咳嗽咳痰 10 年，冬季加重','3 天前受凉后痰量增多、变黄，气促明显','双下肢轻度水肿'],
+ s:['桶状胸，肋间隙增宽，语音震颤减弱','双肺呼吸音低，可闻及哮鸣音及湿啰音','口唇轻度发绀，可见杵状指'],
+ t:{gas:'pH 7.34，PaO₂ 56 mmHg，PaCO₂ 62 mmHg（Ⅱ型呼吸衰竭）',
+    cxr:'双肺透亮度增高，膈肌低平，肺纹理紊乱',
+    cbc:'白细胞 12.1×10⁹/L，中性粒细胞 79%'},
+ tx:[{l:'低流量控制性氧疗（1–2 L/min）+ 支气管扩张剂 + 全身激素 + 抗感染',ok:true},
+     {l:'高浓度面罩吸氧 10 L/min',ok:false},
+     {l:'大剂量镇静催眠药物',ok:false},
+     {l:'单纯止咳镇咳治疗',ok:false}],
+ fee:380,exp:40,
+ pearl:'COPD 伴 Ⅱ 型呼吸衰竭禁用高浓度吸氧，否则会抑制低氧驱动的呼吸中枢，导致 CO₂ 麻醉。'},
+
+{id:'pneumothorax',name:'自发性气胸',dept:'呼吸内科',diff:2,critical:false,
+ cc:'突发右侧胸痛伴气促 2 小时',
+ vitals:{T:'36.9',P:'108',R:'26',BP:'124/76',SpO2:'93'},
+ h:['2 小时前搬重物时突发右侧针刺样胸痛','随后出现气促，逐渐加重','既往体健，瘦高体型，吸烟 5 年','无发热、无咯血'],
+ s:['右侧胸廓饱满，呼吸动度减弱','右侧叩诊鼓音，呼吸音消失','气管向左侧偏移，心率 108 次/分'],
+ t:{cxr:'右肺外带无肺纹理，可见肺压缩边缘，右肺压缩约 60%，纵隔左移',
+    gas:'pH 7.42，PaO₂ 82 mmHg',
+    ecg:'窦性心动过速'},
+ tx:[{l:'立即胸腔穿刺抽气 / 胸腔闭式引流',ok:true},
+     {l:'卧床休息观察，不予处理',ok:false},
+     {l:'支气管扩张剂雾化治疗',ok:false},
+     {l:'抗感染治疗',ok:false}],
+ fee:480,exp:50,
+ pearl:'瘦高青年男性 + 突发胸痛气促 + 患侧呼吸音消失，是原发性自发性气胸的典型表现；肺压缩 >30% 需引流。'},
+
+{id:'appendicitis',name:'急性阑尾炎',dept:'普外科',diff:1,critical:false,
+ cc:'转移性右下腹痛 12 小时',
+ vitals:{T:'38.1',P:'96',R:'20',BP:'120/74',SpO2:'98'},
+ h:['12 小时前脐周隐痛，6 小时后转移并固定于右下腹','伴恶心呕吐 2 次，食欲差','无腹泻、无尿频尿急','既往无腹部手术史'],
+ s:['右下腹压痛、反跳痛、肌紧张（麦氏点）','结肠充气试验阳性，腰大肌试验阳性','肠鸣音减弱'],
+ t:{cbc:'白细胞 16.8×10⁹/L，中性粒细胞 90%',
+    us:'右下腹见肿大阑尾，直径 11 mm，周围少量渗出',
+    ct:'阑尾增粗、壁增厚，周围脂肪间隙模糊'},
+ tx:[{l:'急诊腹腔镜阑尾切除术 + 术前抗生素',ok:true},
+     {l:'单纯口服止痛药回家观察',ok:false},
+     {l:'胃肠减压+保守观察 3 天',ok:false},
+     {l:'抗结核治疗',ok:false}],
+ fee:520,exp:45,
+ pearl:'转移性右下腹痛 + 麦氏点固定压痛 + 白细胞升高，是急性阑尾炎的经典组合，一经确诊应尽早手术。'},
+
+{id:'pancreatitis',name:'急性胰腺炎',dept:'消化内科',diff:3,critical:false,
+ cc:'上腹剧痛 8 小时，向腰背放射',
+ vitals:{T:'38.3',P:'110',R:'24',BP:'112/70',SpO2:'95'},
+ h:['8 小时前饱餐并饮酒后突发上腹持续刀割样疼痛','疼痛向腰背部放射，弯腰抱膝可稍缓解','频繁呕吐，呕吐后腹痛不缓解','既往胆囊结石 3 年'],
+ s:['上腹压痛明显，轻度肌紧张，无反跳痛','肠鸣音减弱','巩膜轻度黄染'],
+ t:{amylase:'血淀粉酶 1280 U/L（>3 倍正常上限），脂肪酶 960 U/L',
+    cbc:'白细胞 14.2×10⁹/L，血细胞比容 48%',
+    bio:'ALT 86 U/L，总胆红素 42 μmol/L，血钙 1.92 mmol/L',
+    ct:'胰腺弥漫性肿大，周围见渗出积液'},
+ tx:[{l:'禁食胃肠减压、积极液体复苏、镇痛、抑制胰酶分泌，评估 ERCP',ok:true},
+     {l:'立即进食流质以中和胃酸',ok:false},
+     {l:'急诊剖腹探查',ok:false},
+     {l:'大剂量糖皮质激素冲击',ok:false}],
+ fee:620,exp:55,
+ pearl:'急性胰腺炎诊断三要素中满足两条即可成立：典型腹痛、血淀粉酶/脂肪酶 >3 倍上限、影像学改变。血钙下降提示重症。'},
+
+{id:'ugib',name:'消化性溃疡并出血',dept:'消化内科',diff:3,critical:true,
+ cc:'呕血 2 次，黑便 1 天',
+ vitals:{T:'36.5',P:'118',R:'22',BP:'88/56',SpO2:'96'},
+ h:['今晨呕血 2 次，共约 400 mL，呈咖啡渣样','1 天来排柏油样黑便 3 次','伴头晕、乏力、心慌','长期服用阿司匹林，有胃溃疡病史'],
+ s:['面色苍白，四肢湿冷，出冷汗','心率 118 次/分，血压 88/56 mmHg','上腹轻压痛，肠鸣音活跃（8 次/分）','睑结膜苍白'],
+ t:{cbc:'血红蛋白 68 g/L，红细胞压积 22%，血小板 110×10⁹/L',
+    bio:'尿素氮 18.6 mmol/L（↑），肌酐 98 μmol/L',
+    gas:'pH 7.38，乳酸 3.6 mmol/L'},
+ tx:[{l:'建立两条静脉通路快速扩容输血，静脉 PPI，24 小时内急诊胃镜止血',ok:true},
+     {l:'立即口服大量温水洗胃',ok:false},
+     {l:'单纯口服止血药后观察',ok:false},
+     {l:'使用强效利尿剂',ok:false}],
+ fee:700,exp:65,
+ pearl:'上消化道出血死亡三联：低血压、高龄、大出血。首要处理是容量复苏，而不是立刻做胃镜。'},
+
+{id:'cholecystitis',name:'急性胆囊炎',dept:'普外科',diff:2,critical:false,
+ cc:'右上腹持续疼痛 1 天，进食油腻后加重',
+ vitals:{T:'38.4',P:'94',R:'20',BP:'128/78',SpO2:'98'},
+ h:['昨日晚餐进食油腻食物后出现右上腹持续胀痛','疼痛向右肩背部放射','伴恶心呕吐、发热畏寒','既往超声发现胆囊结石'],
+ s:['右上腹压痛，Murphy 征阳性','未触及明显包块，无反跳痛','巩膜无明显黄染'],
+ t:{us:'胆囊增大，壁厚 5 mm（毛糙），腔内见多枚强回声伴声影，胆囊周围少量积液',
+    cbc:'白细胞 13.8×10⁹/L，中性粒细胞 85%',
+    bio:'ALT 42 U/L，总胆红素 26 μmol/L，AKP 132 U/L'},
+ tx:[{l:'禁食、解痉镇痛、抗感染，择期或急诊腹腔镜胆囊切除',ok:true},
+     {l:'立即行 ERCP 取石',ok:false},
+     {l:'口服利胆片后观察',ok:false},
+     {l:'抗结核治疗',ok:false}],
+ fee:400,exp:40,
+ pearl:'Murphy 征阳性 + 右上腹痛放射至右肩 + 超声见胆囊壁增厚，是急性胆囊炎的三联证据。'},
+
+{id:'obstruction',name:'肠梗阻',dept:'普外科',diff:3,critical:false,
+ cc:'腹痛腹胀伴呕吐 2 天，停止排气排便',
+ vitals:{T:'37.8',P:'104',R:'22',BP:'118/72',SpO2:'97'},
+ h:['2 天前出现阵发性脐周绞痛，每次持续数分钟','伴频繁呕吐，呕吐物为胃内容物及胆汁','腹胀明显，2 天未排气排便','10 年前行阑尾切除术'],
+ s:['腹部膨隆，可见肠型及蠕动波','全腹轻压痛，未及明显包块，肠鸣音亢进呈金属音','腹部叩诊鼓音'],
+ t:{cxr:'腹部立位平片见多个阶梯状气液平面，肠管扩张',
+    ct:'小肠肠管扩张积液，见移行带，符合粘连性肠梗阻',
+    cbc:'白细胞 10.6×10⁹/L，血细胞比容 45%',
+    bio:'血钾 3.2 mmol/L，肌酐 108 μmol/L'},
+ tx:[{l:'禁食、胃肠减压、补液纠正电解质、解痉，密切观察有无绞窄',ok:true},
+     {l:'立即口服泻药促进排便',ok:false},
+     {l:'进食流质并鼓励下床活动',ok:false},
+     {l:'大剂量解痉后回家观察',ok:false}],
+ fee:460,exp:45,
+ pearl:'"痛、吐、胀、闭"是肠梗阻四联征。有腹部手术史者以粘连性梗阻最常见，关键是判断有无肠绞窄。'},
+
+{id:'stroke',name:'急性缺血性脑卒中',dept:'神经内科',diff:4,critical:true,
+ cc:'突发右侧肢体无力伴言语不清 1.5 小时',
+ vitals:{T:'36.7',P:'88',R:'18',BP:'168/96',SpO2:'96'},
+ h:['1.5 小时前看电视时突发右手持物掉落、右下肢无力','言语含糊，能听懂但不能表达','无头痛、无呕吐、无意识丧失','高血压 10 年、房颤 3 年，未规律抗凝'],
+ s:['神志清楚，运动性失语','右侧鼻唇沟变浅，伸舌右偏','右侧上下肢肌力 2 级，肌张力偏低，右侧巴氏征阳性','NIHSS 评分 12 分'],
+ t:{headct:'未见高密度出血灶，左侧大脑中动脉供血区早期缺血改变（岛带征）',
+    glu:'血糖 7.2 mmol/L',
+    ecg:'心房颤动，心室率 88 次/分',
+    ddimer:'D-二聚体 1.8 mg/L'},
+ tx:[{l:'启动卒中绿色通道，评估静脉溶栓（rt-PA，发病 4.5 h 内）/ 血管内取栓',ok:true},
+     {l:'溶栓前先将血压降至 100/60 mmHg',ok:false},
+     {l:'立即抗凝并继续观察病情',ok:false},
+     {l:'口服阿司匹林后回家',ok:false}],
+ fee:900,exp:80,
+ pearl:'卒中救治核心是"时间窗"：4.5 小时内静脉溶栓、6 小时内取栓。溶栓前必须头颅 CT 排除出血，血压需 <185/110 mmHg。'},
+
+{id:'ich',name:'高血压性脑出血',dept:'神经内科',diff:4,critical:true,
+ cc:'突发剧烈头痛伴呕吐、意识模糊 1 小时',
+ vitals:{T:'37.0',P:'72',R:'20',BP:'196/112',SpO2:'95'},
+ h:['1 小时前情绪激动后突发全头炸裂样剧痛','随后呕吐 2 次（喷射性），逐渐嗜睡','既往高血压 20 年，未规律服药','无外伤史'],
+ s:['嗜睡，呼之能应，GCS 12 分','双侧瞳孔等大 3 mm，对光反射迟钝','左侧肢体肌力 3 级，左侧巴氏征阳性','颈抵抗阳性'],
+ t:{headct:'右侧基底节区团块状高密度影约 28 mL，中线轻度左移，脑室受压',
+    bio:'血糖 9.1 mmol/L，肌酐 96 μmol/L',
+    cbc:'血小板 210×10⁹/L，凝血功能正常'},
+ tx:[{l:'控制血压（静脉乌拉地尔）、降颅压（甘露醇）、绝对卧床，神经外科评估手术',ok:true},
+     {l:'立即静脉溶栓',ok:false},
+     {l:'立即给予阿司匹林抗血小板',ok:false},
+     {l:'大量补液升压',ok:false}],
+ fee:980,exp:85,
+ pearl:'高血压 + 突发剧烈头痛呕吐 + 意识障碍，首先考虑脑出血。确诊前禁用抗栓药物，血压控制目标约 140/90 mmHg。'},
+
+{id:'migraine',name:'偏头痛',dept:'神经内科',diff:1,critical:false,
+ cc:'反复右侧头痛 3 年，再发 1 天',
+ vitals:{T:'36.5',P:'76',R:'16',BP:'118/74',SpO2:'99'},
+ h:['3 年来反复发作右侧搏动性头痛，每月 2–3 次','发作前有眼前闪光、暗点等先兆','伴恶心、畏光畏声，安静休息后可缓解','无肢体无力、无发热'],
+ s:['神志清楚，语言流利','神经系统查体未见阳性体征，脑膜刺激征阴性','双侧颞动脉搏动对称，无压痛'],
+ t:{headct:'头颅 CT 未见异常',cbc:'大致正常',bio:'肝肾功能正常'},
+ tx:[{l:'急性期 NSAIDs / 曲普坦类止痛，避免诱因，必要时预防性用药',ok:true},
+     {l:'长期口服阿片类镇痛药',ok:false},
+     {l:'立即行腰椎穿刺检查',ok:false},
+     {l:'抗感染治疗',ok:false}],
+ fee:180,exp:25,
+ pearl:'有先兆的搏动性头痛、畏光畏声、休息后缓解、神经系统查体正常——符合偏头痛，影像学主要用于排除继发病因。'},
+
+{id:'epilepsy',name:'癫痫全面强直阵挛发作',dept:'神经内科',diff:2,critical:false,
+ cc:'突发意识丧失、四肢抽搐 5 分钟',
+ vitals:{T:'37.2',P:'110',R:'22',BP:'142/86',SpO2:'92'},
+ h:['5 分钟前突然倒地、双眼上翻、四肢强直阵挛','伴口吐白沫、牙关紧闭，小便失禁','发作约 3 分钟后自行停止，醒后嗜睡','2 年前有类似发作 1 次，未就诊'],
+ s:['发作后意识模糊、嗜睡','舌侧缘可见咬伤','四肢肌力对称，病理征阴性','颈软，脑膜刺激征阴性'],
+ t:{glu:'快速血糖 5.6 mmol/L，血钠 138 mmol/L，血钙 2.2 mmol/L',
+    headct:'头颅 CT 未见明显异常',
+    ecg:'窦性心动过速，未见心律失常'},
+ tx:[{l:'保持气道通畅、侧卧位防误吸，地西泮终止发作，查找病因并启动抗癫痫治疗',ok:true},
+     {l:'强行按压肢体制止抽搐',ok:false},
+     {l:'发作中立即喂水喂药',ok:false},
+     {l:'大剂量糖皮质激素',ok:false}],
+ fee:300,exp:35,
+ pearl:'抽搐超过 5 分钟即为癫痫持续状态，需立即静脉止痉。现场切勿强行按压肢体或往口中塞硬物。'},
+
+{id:'dka',name:'糖尿病酮症酸中毒',dept:'内分泌科',diff:3,critical:true,
+ cc:'多饮多尿 1 周，恶心呕吐伴意识模糊 1 天',
+ vitals:{T:'37.6',P:'118',R:'28',BP:'98/62',SpO2:'97'},
+ h:['1 周来明显多饮多尿，体重下降 5 kg','1 天来恶心呕吐、腹痛、乏力，逐渐嗜睡','1 型糖尿病 5 年，近 3 天自行停用胰岛素','无发热咳嗽'],
+ s:['嗜睡，皮肤干燥、弹性差，眼窝凹陷','呼吸深快（Kussmaul 呼吸），呼气有烂苹果味','心率 118 次/分，血压 98/62 mmHg，四肢湿冷'],
+ t:{glu:'随机血糖 28.6 mmol/L，血酮 5.8 mmol/L（↑↑）',
+    gas:'pH 7.12，HCO₃⁻ 8 mmol/L，PaCO₂ 22 mmHg',
+    bio:'血钾 5.4 mmol/L，血钠 132 mmol/L，肌酐 148 μmol/L',
+    urine:'尿糖 +++，尿酮体 +++，尿蛋白 +'},
+ tx:[{l:'大量生理盐水补液、小剂量胰岛素静脉泵入、纠正电解质与酸中毒',ok:true},
+     {l:'立即静脉推注大剂量胰岛素 20 U',ok:false},
+     {l:'立即静脉推注碳酸氢钠纠正酸中毒',ok:false},
+     {l:'皮下注射胰岛素后回家',ok:false}],
+ fee:820,exp:75,
+ pearl:'DKA 补液优先于胰岛素，且必须先看清血钾：低钾时使用胰岛素会诱发致命性心律失常。'},
+
+{id:'hypoglycemia',name:'低血糖昏迷',dept:'内分泌科',diff:2,critical:true,
+ cc:'意识不清 30 分钟，全身大汗',
+ vitals:{T:'36.3',P:'102',R:'18',BP:'112/70',SpO2:'97'},
+ h:['30 分钟前被家属发现意识不清、呼之不应','全身大汗、四肢抖动','2 型糖尿病 8 年，使用胰岛素，今日进食少','未监测血糖'],
+ s:['浅昏迷，压眶有反应，双侧瞳孔等大等圆','全身皮肤湿冷，大汗','心率 102 次/分，病理征阴性'],
+ t:{glu:'指尖血糖 1.9 mmol/L（↓↓）',
+    bio:'肝肾功能大致正常，血钠 136 mmol/L',
+    headct:'头颅 CT 未见明显异常'},
+ tx:[{l:'立即静脉推注 50% 葡萄糖 40–60 mL，随后持续滴注并监测血糖',ok:true},
+     {l:'立即静脉推注胰岛素',ok:false},
+     {l:'意识不清时喂食含糖饮料',ok:false},
+     {l:'立即静脉溶栓',ok:false}],
+ fee:400,exp:50,
+ pearl:'低血糖昏迷是最容易被漏诊的"可逆性昏迷"。任何意识障碍患者，第一件事都是测血糖。'},
+
+{id:'hyperthyroid',name:'甲状腺功能亢进症',dept:'内分泌科',diff:1,critical:false,
+ cc:'心悸、多汗、消瘦 4 个月',
+ vitals:{T:'37.4',P:'108',R:'20',BP:'142/62',SpO2:'98'},
+ h:['4 个月来怕热多汗、心悸、易激动','食欲增加但体重下降 8 kg','大便次数增多，每日 3–4 次','颈部逐渐增粗，无明显疼痛'],
+ s:['双眼突出，瞬目减少，辐辏不良','甲状腺Ⅱ度肿大，质软，可闻及血管杂音','心率 108 次/分，双手细颤阳性','皮肤温暖潮湿'],
+ t:{bio:'TSH <0.005 mIU/L（↓），FT3 18.6 pmol/L（↑），FT4 42 pmol/L（↑），TRAb 阳性',
+    ecg:'窦性心动过速，心率 108 次/分',
+    cbc:'白细胞 5.2×10⁹/L，ALT 46 U/L'},
+ tx:[{l:'抗甲状腺药物（甲巯咪唑）+ β受体阻滞剂控制症状，定期复查血常规肝功',ok:true},
+     {l:'立即行甲状腺次全切除术',ok:false},
+     {l:'补充甲状腺素治疗',ok:false},
+     {l:'大剂量碘剂长期口服',ok:false}],
+ fee:260,exp:30,
+ pearl:'甲亢典型三联：高代谢症状、甲状腺肿大、突眼。使用抗甲状腺药前后必须监测白细胞与肝功能。'},
+
+{id:'ectopic',name:'异位妊娠破裂',dept:'妇产科',diff:4,critical:true,sex:'女',age:28,
+ cc:'停经 7 周，下腹剧痛伴晕倒 1 小时',
+ vitals:{T:'36.6',P:'124',R:'24',BP:'78/48',SpO2:'96'},
+ h:['停经 7 周，晨起恶心，自测尿妊娠试验阳性','1 小时前突发左下腹撕裂样剧痛，随后晕倒','伴肛门坠胀感、少量阴道流血','既往盆腔炎病史'],
+ s:['面色苍白，四肢湿冷，烦躁不安','血压 78/48 mmHg，心率 124 次/分','下腹压痛、反跳痛明显，移动性浊音阳性','宫颈举痛，后穹窿饱满'],
+ t:{hcg:'血 β-hCG 2860 mIU/mL',
+    us:'宫腔内未见孕囊，左附件区见混合回声包块 3.2 cm，盆腔大量积液',
+    cbc:'血红蛋白 76 g/L，红细胞压积 23%',
+    bio:'肌酐 88 μmol/L，尿素氮 9.2 mmol/L'},
+ tx:[{l:'立即建立静脉通路抗休克，急诊腹腔镜探查 + 患侧输卵管切除/开窗取胚',ok:true},
+     {l:'门诊观察，1 周后复查超声',ok:false},
+     {l:'行人工流产术',ok:false},
+     {l:'静脉抗生素保守治疗',ok:false}],
+ fee:1000,exp:85,
+ pearl:'育龄女性腹痛必须先查 β-hCG。停经 + 腹痛 + 阴道流血 + 休克，是异位妊娠破裂的经典四联征。'},
+
+{id:'stone',name:'输尿管结石',dept:'泌尿外科',diff:1,critical:false,
+ cc:'突发左腰腹部绞痛 3 小时，伴血尿',
+ vitals:{T:'37.1',P:'96',R:'20',BP:'146/88',SpO2:'98'},
+ h:['3 小时前突发左侧腰腹部刀割样绞痛，阵发性加剧','疼痛向左下腹及会阴部放射','伴恶心呕吐，肉眼血尿一次','既往有泌尿系结石史'],
+ s:['痛苦面容，辗转不安，不断变换体位','左肾区叩击痛阳性，左下腹轻压痛','肠鸣音正常'],
+ t:{urine:'尿潜血 +++，红细胞 60/HP，白细胞 3/HP',
+    us:'左肾轻度积水，左输尿管上段见 6 mm 强回声伴声影',
+    cbc:'白细胞 9.8×10⁹/L',
+    bio:'肌酐 102 μmol/L，血尿酸 486 μmol/L'},
+ tx:[{l:'解痉镇痛（NSAIDs/阿片类）、大量饮水，α受体阻滞剂排石，必要时体外碎石',ok:true},
+     {l:'立即静脉溶栓治疗',ok:false},
+     {l:'嘱长期卧床制动',ok:false},
+     {l:'抗结核治疗',ok:false}],
+ fee:280,exp:30,
+ pearl:'肾绞痛的特点是"痛得打滚、找不到舒适体位"，而腹膜炎患者往往静卧不动——这是重要的鉴别线索。'},
+
+{id:'sepsis',name:'脓毒症',dept:'急诊医学科',diff:4,critical:true,
+ cc:'高热寒战 2 天，意识淡漠 4 小时',
+ vitals:{T:'39.8',P:'128',R:'30',BP:'82/50',SpO2:'92'},
+ h:['2 天前出现寒战高热，最高 40.1℃','伴乏力、食欲极差，尿量明显减少','4 小时来反应迟钝、言语减少','糖尿病 10 年，1 周前有皮肤疖肿'],
+ s:['意识淡漠，问答迟缓','皮肤可见花斑，毛细血管再充盈时间 4 秒','心率 128 次/分，血压 82/50 mmHg','右下腹皮肤疖肿，周围红肿'],
+ t:{cbc:'白细胞 21.6×10⁹/L，中性粒细胞 92%，血小板 78×10⁹/L',
+    lactate:'血乳酸 6.2 mmol/L（↑↑）',
+    bio:'肌酐 216 μmol/L，总胆红素 38 μmol/L，CRP 186 mg/L',
+    gas:'pH 7.28，PaO₂ 72 mmHg'},
+ tx:[{l:'1 小时内留取血培养并启动广谱抗生素，30 mL/kg 液体复苏，血管活性药，清除感染灶',ok:true},
+     {l:'先等待培养结果再决定是否使用抗生素',ok:false},
+     {l:'单纯物理降温后观察',ok:false},
+     {l:'大剂量糖皮质激素单药治疗',ok:false}],
+ fee:1100,exp:90,
+ pearl:'脓毒症集束化治疗强调"1 小时 bundle"：测乳酸、留培养、用广谱抗生素、液体复苏。乳酸 >2 mmol/L 提示组织低灌注。'},
+
+{id:'anaphylaxis',name:'过敏性休克',dept:'急诊医学科',diff:3,critical:true,
+ cc:'进食海鲜后全身皮疹、呼吸困难 20 分钟',
+ vitals:{T:'36.9',P:'132',R:'30',BP:'76/44',SpO2:'89'},
+ h:['20 分钟前食用海鲜后出现全身瘙痒、风团','随后喉部发紧、声嘶、呼吸困难','伴腹痛、恶心，头晕眼花','既往有海鲜过敏史'],
+ s:['烦躁不安，声音嘶哑，可闻及吸气性喉鸣','全身广泛荨麻疹，口唇及眼睑水肿','血压 76/44 mmHg，心率 132 次/分','双肺可闻及哮鸣音'],
+ t:{gas:'pH 7.30，PaO₂ 58 mmHg，PaCO₂ 44 mmHg',
+    cbc:'嗜酸性粒细胞正常，白细胞 12.4×10⁹/L',
+    ecg:'窦性心动过速'},
+ tx:[{l:'立即肌注肾上腺素 0.3–0.5 mg（大腿外侧），平卧抬腿、吸氧、快速补液，激素与抗组胺辅助',ok:true},
+     {l:'静脉推注未稀释肾上腺素 1 mg',ok:false},
+     {l:'单纯口服抗组胺药后观察',ok:false},
+     {l:'首选立即行气管切开',ok:false}],
+ fee:600,exp:60,
+ pearl:'过敏性休克的一线用药是肌肉注射肾上腺素，不是激素也不是抗组胺药。静脉推注未稀释肾上腺素可致命。'}
+];
+
+const DIS_MAP = {};
+DISEASES.forEach(d=>DIS_MAP[d.id]=d);
+
+/* ---------------- 职称 ---------------- */
+const RANKS = [
+  {name:'实习医师', exp:0,     mul:0.75},
+  {name:'住院医师', exp:300,   mul:1.0},
+  {name:'主治医师', exp:1200,  mul:1.28},
+  {name:'副主任医师',exp:3000, mul:1.6},
+  {name:'主任医师', exp:7000,  mul:2.0},
+  {name:'科室主任·教授',exp:15000,mul:2.5}
+];
+
+/* ---------------- 科室建设 ---------------- */
+const UPS = [
+  {k:'lab',  name:'检验中心', ico:'🧪', max:4, cost:[1500,3600,8000,18000],
+   desc:'检查耗时 −12%/级，检查费用 −8%/级'},
+  {k:'img',  name:'影像中心', ico:'🖥', max:4, cost:[2200,5200,12000,26000],
+   desc:'影像检查耗时 −15%/级，阳性发现更明确'},
+  {k:'icu',  name:'抢救单元', ico:'🚑', max:4, cost:[3000,7500,17000,38000],
+   desc:'危急患者可耐受时间 +25%/级，抢救成功率提升'},
+  {k:'nurse',name:'护理团队', ico:'👩‍⚕️', max:4, cost:[900,2200,5400,13000],
+   desc:'患者候诊耐心 +30%/级，减少流失'},
+  {k:'doc',  name:'住院医师', ico:'🧑‍⚕️', max:4, cost:[2600,6200,15000,32000],
+   desc:'自动接诊简单病例（收入 55%，误诊率随等级下降）'}
+];
+const UP_MAP = {};
+UPS.forEach(u=>UP_MAP[u.k]=u);
+
+/* ============================================================
+   医生模拟器 · 仁心医院  —— 逻辑层
+   回合制门诊：挂号 → 接诊 → 问诊/查体 → 检查 → 诊断 → 处置
+   手术/抢救时才出现读条
+   ============================================================ */
+
+/* ---------------- 可选科室 ---------------- */
+const DEPTS = [
+  {id:'im',  name:'内科', ico:'🫀', desc:'处理各类内科常见病，以慢性病、感染性疾病为主',
+   tags:['冠心病·心梗','肺炎·哮喘','胃肠肝胆','糖尿病·甲状腺'], keys:['心血管内科','呼吸内科','消化内科','内分泌科','神经内科']},
+  {id:'surg',name:'外科', ico:'✂️', desc:'处理外伤、急腹症及各类需要手术干预的疾病',
+   tags:['急性阑尾炎','泌尿系结石','肠梗阻','急性胆囊炎'], keys:['普外科','泌尿外科']},
+  {id:'obg', name:'妇产科',ico:'🤰', desc:'专注女性妊娠与妇科急症，风险与机遇并存',
+   tags:['异位妊娠','急腹症','休克抢救'], keys:['妇产科']},
+  {id:'er',  name:'急诊科',ico:'🚨', desc:'随时可能出现危急重症，考验快速判断与应急能力',
+   tags:['急性心梗','脑卒中','脓毒症','过敏性休克'], keys:['急诊医学科','心血管内科','神经内科']}
+];
+
+/* ---------------- 常量 ---------------- */
+const SAVE_KEY = 'renxin_hospital_G209_v1';
+const DAY_START = 480;      // 08:00
+const DAY_END   = 960;      // 16:00
+const Q_LABEL = ['请说说主要哪里不舒服？','这种情况是什么特点？','还伴随哪些症状？','既往有什么病史或诱因？'];
+const E_LABEL = ['一般情况如何？','专科查体有什么发现？','还有哪些阳性体征？','有无其他异常？'];
+
+let S = null;
+
+/* ---------------- 基础工具 ---------------- */
+function $(id){ return document.getElementById(id); }
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function ri(a,b){ return Math.floor(rnd(a,b+1)); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ const r=a.slice(); for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=r[i]; r[i]=r[j]; r[j]=t; } return r; }
+function fmtY(n){ n=Math.round(n); return (n<0?'-¥':'¥') + Math.abs(n).toLocaleString('zh-CN'); }
+function fmtClock(m){ m=Math.floor(m); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function toast(msg, type){
+  const el=document.createElement('div');
+  el.className='toast '+(type||''); el.innerHTML=msg;
+  $('toastRoot').appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); },2200);
+}
+
+/* ---------------- 状态 ---------------- */
+function newGame(dept){
+  return {
+    day:1, clock:DAY_START, dept:dept||'im',
+    cash:9000, rep:50, exp:0, rank:0, health:100,
+    seq:1, queue:[], patients:{}, active:null, sel:null,
+    up:{lab:0,img:0,icu:0,nurse:0,doc:0}, acad:0, papers:0,
+    today:{seen:0,income:0,cost:0,cured:0,dispute:0,death:0,booked:0,slots:8},
+    total:{seen:0,income:0,cured:0,dispute:0,death:0},
+    history:[], tab:'overview', ended:false
+  };
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{ const r=localStorage.getItem(SAVE_KEY); if(!r) return null; const o=JSON.parse(r); return (o&&o.patients)?o:null; }catch(e){ return null; }
+}
+
+/* ---------------- 患者 ---------------- */
+function poolByDept(){
+  const d = DEPTS.find(x=>x.id===S.dept) || DEPTS[0];
+  const main = DISEASES.filter(x=>d.keys.indexOf(x.dept)>=0);
+  const rest = DISEASES.filter(x=>d.keys.indexOf(x.dept)<0);
+  const maxDiff = 2 + S.rank;
+  const okMain = main.filter(x=>x.diff<=maxDiff);
+  const okRest = rest.filter(x=>x.diff<=maxDiff);
+  return {main: okMain.length?okMain:main, rest: okRest.length?okRest:rest};
+}
+
+function makePatient(){
+  const p2 = poolByDept();
+  const d = (Math.random()<0.78 || p2.rest.length===0) ? pick(p2.main) : pick(p2.rest);
+  const sex = d.sex || (Math.random()<0.52?'女':'男');
+  const age = d.age || (d.id==='cap'?ri(18,72):d.id==='copd'?ri(56,80):ri(22,76));
+  const v = Object.assign({}, d.vitals);
+  v.T = (parseFloat(v.T)+rnd(-0.2,0.2)).toFixed(1);
+  v.P = String(Math.round(parseFloat(v.P)+rnd(-4,4)));
+  v.R = String(Math.round(parseFloat(v.R)+rnd(-1,1)));
+  v.SpO2 = String(Math.min(99,Math.max(82,Math.round(parseFloat(v.SpO2)+rnd(-1,1)))));
+  const bp = v.BP.split('/');
+  v.BP = Math.round(parseFloat(bp[0])+rnd(-6,6))+'/'+Math.round(parseFloat(bp[1])+rnd(-4,4));
+
+  const p = {
+    id:'P'+(S.seq++), name:randName(sex), sex:sex, age:age, dis:d.id, cc:d.cc,
+    vitals:v, hIdx:0, sIdx:0, tests:{}, dxTries:0, ruled:[], options:null,
+    phase:'work', done:false, cost:0
+  };
+  S.patients[p.id]=p;
+  return p;
+}
+function randName(sex){
+  const sn='赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦许何吕施张孔曹严华金魏陶姜';
+  const gn = sex==='女' ? ['芳','娜','敏','静','丽','艳','娟','秀英','霞','玉兰','雨欣','梦琪','慧','颖']
+                        : ['伟','强','磊','洋','勇','杰','涛','明','超','建国','鹏','晨','浩','鑫'];
+  return sn[Math.floor(Math.random()*sn.length)] + pick(gn);
+}
+
+function caseOptions(p){
+  if(p.options) return p.options;
+  const d = DIS_MAP[p.dis];
+  const same = shuffle(DISEASES.filter(x=>x.dept===d.dept && x.id!==d.id).map(x=>x.name));
+  const other = shuffle(DISEASES.filter(x=>x.dept!==d.dept).map(x=>x.name));
+  let pool = same.slice(0,3);
+  while(pool.length<5){ const n=other.pop(); if(!n) break; if(pool.indexOf(n)<0) pool.push(n); }
+  p.options = shuffle(pool.concat([d.name]));
+  return p.options;
+}
+
+function vitalAbn(v){
+  const o={};
+  const t=parseFloat(v.T); if(t>=37.3) o.T=t>=38.5?2:1; if(t<=36.0) o.T=1;
+  const p=parseFloat(v.P); if(p>100||p<60) o.P=(p>120||p<50)?2:1;
+  const r=parseFloat(v.R); if(r>20||r<12) o.R=(r>28||r<10)?2:1;
+  const sp=parseFloat(v.SpO2); if(sp<95) o.SpO2=sp<90?2:1;
+  const bp=v.BP.split('/'), sys=parseFloat(bp[0]), dia=parseFloat(bp[1]);
+  if(sys>=140||sys<90) o.BP=(sys>=180||sys<85)?2:1;
+  if(dia>=90) o.BP=Math.max(o.BP||0,1);
+  return o;
+}
+
+/* ---------------- 挂号 ---------------- */
+function bookPatient(silent){
+  if(S.ended){ toast('今日门诊已结束，请查看日报'); return null; }
+  if(S.today.booked >= S.today.slots){ toast('今日号源已用完（'+S.today.slots+' 个）','bad'); return null; }
+  const p = makePatient();
+  S.today.booked++;
+  S.queue.push(p.id);
+  const d = DIS_MAP[p.dis];
+  if(!silent){
+    if(d.critical) toast('🚨 挂号成功：'+p.name+' 病情危重，请优先接诊','bad');
+    else toast('挂号成功：'+p.name+' · '+d.dept);
+  }
+  render(); save();
+  return p;
+}
+
+function startClinic(p){
+  S.active = p.id;
+  S.sel = null;
+  switchTab('clinic');
+}
+
+/* ---------------- 问诊 / 查体（逐条追问） ---------------- */
+function advanceClock(min){
+  S.clock = Math.min(DAY_END, S.clock + min);
+}
+
+function askMore(){
+  const p = S.patients[S.active]; if(!p) return;
+  const d = DIS_MAP[p.dis];
+  if(p.hIdx >= d.h.length) return;
+  p.hIdx++;
+  advanceClock(2);
+  render(); save();
+}
+function examMore(){
+  const p = S.patients[S.active]; if(!p) return;
+  const d = DIS_MAP[p.dis];
+  if(p.sIdx >= d.s.length) return;
+  p.sIdx++;
+  advanceClock(3);
+  render(); save();
+}
+function askAll(){
+  const p = S.patients[S.active]; if(!p) return;
+  const d = DIS_MAP[p.dis];
+  const n = d.h.length - p.hIdx;
+  if(n<=0) return;
+  p.hIdx = d.h.length;
+  advanceClock(2*n);
+  render(); save();
+}
+function examAll(){
+  const p = S.patients[S.active]; if(!p) return;
+  const d = DIS_MAP[p.dis];
+  const n = d.s.length - p.sIdx;
+  if(n<=0) return;
+  p.sIdx = d.s.length;
+  advanceClock(3*n);
+  render(); save();
+}
+
+/* ---------------- 检查 ---------------- */
+function testCost(t){
+  const lv = S.up.lab;
+  const isImg = (t.id==='ct'||t.id==='headct'||t.id==='cxr'||t.id==='us');
+  let cost = t.cost*(1-0.08*lv);
+  let min = t.min*(1-0.12*lv);
+  if(isImg){ cost *= (1-0.06*S.up.img); min *= (1-0.15*S.up.img); }
+  return {cost:Math.round(cost), min:Math.max(2,Math.round(min*0.4))};
+}
+function doTest(tid){
+  const p=S.patients[S.active]; if(!p) return;
+  if(p.tests[tid]) return;
+  const t=TEST_MAP[tid]; if(!t) return;
+  const c=testCost(t);
+  if(S.cash < c.cost){ toast('现金不足，开不了这项检查','bad'); return; }
+  S.cash -= c.cost; S.today.cost += c.cost; p.cost += c.cost;
+  const d=DIS_MAP[p.dis];
+  p.tests[tid] = {res: d.t[tid] || '未见明显异常', cost:c.cost};
+  advanceClock(c.min);
+  render(); save();
+}
+function consult(){
+  const p=S.patients[S.active]; if(!p) return;
+  if(p.ruled.length>=2) return;
+  if(S.cash<400){ toast('现金不足，无法请上级会诊','bad'); return; }
+  S.cash-=400; S.today.cost+=400; p.cost+=400;
+  const d=DIS_MAP[p.dis];
+  const opts=caseOptions(p).filter(o=>o!==d.name && p.ruled.indexOf(o)<0);
+  const rm=shuffle(opts).slice(0,2);
+  p.ruled=p.ruled.concat(rm);
+  advanceClock(10);
+  toast('👨‍⚕️ 上级会诊：已排除 2 项鉴别诊断','ok');
+  render(); save();
+}
+
+/* ---------------- 诊断 ---------------- */
+function pickDx(name){
+  const p=S.patients[S.active]; if(!p) return;
+  if(p.ruled.indexOf(name)>=0) return;
+  S.sel = (S.sel===name? null : name);
+  render();
+}
+function submitDx(){
+  const p=S.patients[S.active]; if(!p||!S.sel) return;
+  const d=DIS_MAP[p.dis];
+  if(S.sel===d.name){
+    p.phase='treat'; S.sel=null; advanceClock(2);
+    toast('✅ 诊断成立，请选择处置方案','ok');
+    render(); save();
+  } else {
+    p.dxTries++;
+    S.rep=Math.max(0,S.rep-3);
+    S.sel=null; advanceClock(5);
+    if(p.dxTries>=3){
+      S.rep=Math.max(0,S.rep-5);
+      S.today.dispute++; S.total.dispute++;
+      finishCase(p, null, 'dx');
+    } else {
+      toast('❌ 诊断不成立（声誉 −3），请重新梳理线索（'+p.dxTries+'/3）','bad');
+      render(); save();
+    }
+  }
+}
+
+/* ---------------- 处置 ---------------- */
+function doTreat(idx){
+  const p=S.patients[S.active]; if(!p) return;
+  const d=DIS_MAP[p.dis];
+  const t=d.tx[idx]; if(!t) return;
+  if(d.critical){
+    startRescue(p, t);
+  } else if(isSurgical(t.l)){
+    playSurgery(p, t);
+  } else {
+    finishCase(p, t, null);
+  }
+}
+function isSurgical(label){
+  return /手术|切除|PCI|引流|取胚|碎石|溶栓|胃镜|电复律|探查|复位|置管|气管|插管|剖腹|开腹|腹腔镜/.test(label);
+}
+
+/* ---------------- 手术读条 ---------------- */
+function playSurgery(p, txOpt){
+  const lines = ['麻醉诱导，气管插管完成…','消毒铺巾，切皮，逐层进入…','探查病灶，处理出血点…','完成关键操作，检查有无副损伤…','清点器械纱布，逐层关腹缝合…'];
+  let step = 0;
+  $('modalRoot').innerHTML =
+    '<div class="mask"><div class="modal">'
+    + '<h3>🔪 手术进行中</h3>'
+    + '<div class="sub">' + p.name + ' · ' + p.sex + ' · ' + p.age + ' 岁 ｜ ' + DIS_MAP[p.dis].name + '</div>'
+    + '<div class="surg-bar"><i id="sgBar" style="width:0%"></i></div>'
+    + '<div class="surg-log" id="sgLog"></div>'
+    + '</div></div>';
+  const bar = $('sgBar'), log = $('sgLog');
+  const total = 4;
+  let t = 0;
+  const iv = setInterval(function(){
+    t += 0.08;
+    const pct = Math.min(100, t/total*100);
+    if(bar) bar.style.width = pct + '%';
+    const want = Math.min(lines.length-1, Math.floor(pct/20));
+    while(step <= want && step < lines.length){
+      const dv = document.createElement('div');
+      dv.textContent = '· ' + lines[step];
+      if(log) log.appendChild(dv);
+      step++;
+    }
+    if(t >= total){
+      clearInterval(iv);
+      setTimeout(function(){ $('modalRoot').innerHTML=''; finishCase(p, txOpt, null); }, 320);
+    }
+  }, 80);
+}
+
+/* ---------------- 抢救（限时决策） ---------------- */
+function buildRescueSteps(p){
+  const v=p.vitals, steps=[];
+  const sys=parseFloat(v.BP.split('/')[0]), spo=parseFloat(v.SpO2), hr=parseFloat(v.P), temp=parseFloat(v.T);
+  if(sys<95) steps.push({q:'患者血压 '+v.BP+' mmHg，循环不稳，首要处置是？',
+    o:[['快速静脉补液扩容，必要时升压药',1],['立即静脉降压',0],['限制入量，先观察',0]]});
+  if(spo<93) steps.push({q:'血氧饱和度仅 '+v.SpO2+'%，首要处置是？',
+    o:[['开放气道、高流量吸氧/无创通气',1],['给予镇静药减少氧耗',0],['平卧休息并观察',0]]});
+  if(hr>115) steps.push({q:'心率 '+v.P+' 次/分，首要处置是？',
+    o:[['评估心律，血流动力学不稳时同步电复律',1],['静脉推注地塞米松',0],['按压颈动脉窦并观察',0]]});
+  if(temp>=38.3) steps.push({q:'体温 '+v.T+'℃，首要处置是？',
+    o:[['留取血培养后 1 小时内启动广谱抗生素',1],['单纯物理降温后等待',0],['先等培养结果再用抗生素',0]]});
+  while(steps.length<3) steps.push({q:'气道与体位管理，下列哪项正确？',
+    o:[['仰头抬颏、清除口鼻分泌物，侧卧防误吸',1],['立即喂水观察',0],['垫高下肢并取坐位',0]]});
+  return steps.slice(0,3).map(function(s){
+    return {q:s.q, o:shuffle(s.o.map(function(x){ return {l:x[0], ok:!!x[1]}; }))};
+  });
+}
+
+function startRescue(p, txOpt){
+  const steps = buildRescueSteps(p);
+  const LIMIT = 100;           // 10 秒
+  let left = LIMIT, idx = 0, locked = false, done = false, pen = 0;
+
+  function mount(){
+    let dots='';
+    for(let i=0;i<steps.length;i++){
+      dots += '<i class="'+(i<idx?'on':'')+'"></i>';
+    }
+    $('modalRoot').innerHTML =
+      '<div class="mask"><div class="modal">'
+      + '<h3>🚨 抢救中 · ' + p.name + '</h3>'
+      + '<div class="sub">' + p.sex + ' · ' + p.age + ' 岁 ｜ 生命体征不稳，请迅速判断</div>'
+      + '<div class="dots">' + dots + '</div>'
+      + '<div class="cd" id="cdNum">' + (left/10).toFixed(1) + 's</div>'
+      + '<div class="surg-bar hot"><i id="cdBar" style="width:100%"></i></div>'
+      + '<div class="rstep" id="rsQ">' + steps[idx].q + '</div>'
+      + '<div id="rsOpts">' + steps[idx].o.map(function(o,i){
+          return '<button class="ropt" data-i="'+i+'" onclick="__pickRescue('+i+')">'+o.l+'</button>';
+        }).join('') + '</div>'
+      + '</div></div>';
+  }
+
+  window.__pickRescue = function(i){
+    if(locked || done) return;
+    const opt = steps[idx].o[i];
+    if(!opt) return;
+    if(opt.ok){
+      locked = true;
+      const btn = document.querySelector('.ropt[data-i="'+i+'"]');
+      if(btn) btn.classList.add('ok');
+      idx++;
+      if(idx >= steps.length){
+        done = true;
+        clearInterval(iv);
+        setTimeout(function(){
+          $('modalRoot').innerHTML='';
+          finishCase(p, txOpt, null, {rescue:true});
+        }, 420);
+      } else {
+        setTimeout(function(){ locked=false; mount(); }, 260);
+      }
+    } else {
+      left = Math.max(0, left - 35);
+      pen++;
+      const btn = document.querySelector('.ropt[data-i="'+i+'"]');
+      if(btn){ btn.classList.add('no'); setTimeout(function(){ btn.classList.remove('no'); }, 420); }
+      if(left <= 0){ fail(); }
+    }
+  };
+
+  function fail(){
+    if(done) return;
+    done = true;
+    clearInterval(iv);
+    $('modalRoot').innerHTML='';
+    finishCase(p, txOpt, 'rescue');
+  }
+
+  mount();
+
+  const iv = setInterval(function(){
+    if(done) return;
+    left -= 1;
+    const n=$('cdNum'), b=$('cdBar');
+    if(n){ n.textContent = Math.max(0,left/10).toFixed(1)+'s'; if(left<40) n.classList.add('hot'); }
+    if(b) b.style.width = Math.max(0,left)+'%';
+    if(left<=0) fail();
+  }, 100);
+}
+
+/* ---------------- 结算 ---------------- */
+function finishCase(p, txOpt, failReason, extra){
+  const d = DIS_MAP[p.dis];
+  const rankMul = RANKS[S.rank].mul;
+  const tired = S.health < 25 ? 0.85 : 1;
+  let income=0, repD=0, expD=0, result='', detail='', okState='bad';
+
+  if(failReason==='dx'){
+    repD = -6; expD = Math.round(d.exp*0.15);
+    result = '⚠️ 病例失控';
+    detail = '连续三次诊断不成立，患者转上级医院，科室声誉受损。';
+  } else if(failReason==='rescue'){
+    if(d.critical) S.today.death++, S.total.death++;
+    repD = -8; expD = Math.round(d.exp*0.2);
+    result = '💔 抢救失败';
+    detail = '抢救窗口内未能完成关键处置，患者病情不可逆恶化。';
+    S.today.dispute++; S.total.dispute++;
+  } else if(txOpt && txOpt.ok){
+    income = d.fee * rankMul * tired;
+    if(d.critical) { income *= 1.3; repD += 4; } else repD += 2;
+    expD = d.exp;
+    S.today.cured++; S.total.cured++; S.acad += 1;
+    result = '✅ 诊疗成功'; okState='ok';
+    detail = '诊断准确、处置得当，患者病情稳定，家属表示感谢。';
+  } else {
+    income = d.fee * rankMul * 0.55 * tired;
+    repD = -1; expD = Math.round(d.exp*0.5);
+    S.today.cured++;
+    result = '🟡 处置欠妥'; okState='mid';
+    detail = '诊断方向正确，但处置方案不够恰当，患者病情出现反复。';
+  }
+
+  p.done = true;
+  S.cash += income; S.today.income += income; S.total.income += income;
+  S.today.seen++; S.total.seen++;
+  S.rep = Math.max(0, Math.min(100, S.rep + repD));
+  S.exp += expD;
+  S.health = Math.max(0, S.health - (5 + d.diff*2));
+
+  const qi = S.queue.indexOf(p.id); if(qi>=0) S.queue.splice(qi,1);
+  S.active = null; S.sel = null;
+
+  S.history.unshift({
+    day:S.day, name:p.name, sex:p.sex, age:p.age, dept:d.dept,
+    dx:d.name, result:result, ok: (result.indexOf('✅')===0),
+    income:Math.round(income), crit:!!d.critical
+  });
+  if(S.history.length>60) S.history.length=60;
+
+  const nr = rankOf(S.exp);
+  if(nr!==S.rank){ S.rank=nr; setTimeout(function(){ toast('🎖 晋升：'+RANKS[nr].name+'！收入系数 ×'+RANKS[nr].mul,'ok'); },700); }
+
+  showResult(p, d, result, detail, income, repD, expD, okState);
+  render(); save();
+}
+
+function showResult(p, d, result, detail, income, repD, expD, state){
+  const col = state==='ok' ? '#2f9e63' : state==='mid' ? '#c07a1a' : '#d64545';
+  let h='';
+  h+='<div class="mask" onclick="if(event.target===this)closeModal()"><div class="modal">';
+  h+='<h3>📋 病例回访</h3>';
+  h+='<div class="sub">'+p.name+' · '+p.sex+' · '+p.age+' 岁 ｜ '+d.dept+' ｜ 难度 '+'★'.repeat(d.diff)+'</div>';
+  h+='<div class="res-big" style="color:'+col+'">'+result+'</div>';
+  h+='<div class="res-line">'+detail+'</div>';
+  h+='<div class="res-line" style="margin-top:10px">最终诊断：<b>'+d.name+'</b></div>';
+  h+='<div class="rewards">';
+  h+='<div class="rw'+(income>0?' up':'')+'">收入 +'+fmtY(income)+'</div>';
+  h+='<div class="rw'+(repD>=0?' up':' dn')+'">声誉 '+(repD>=0?'+':'')+repD+'</div>';
+  h+='<div class="rw up">经验 +'+expD+'</div>';
+  if(state==='ok') h+='<div class="rw up">学术点 +1</div>';
+  h+='</div>';
+  h+='<div class="pearl"><span class="h">📚 教学要点</span>'+d.pearl+'</div>';
+  h+='<div class="foot"><button class="btnp" onclick="closeModal()">继续接诊</button></div>';
+  h+='</div></div>';
+  $('modalRoot').innerHTML=h;
+}
+function closeModal(){ $('modalRoot').innerHTML=''; render(); }
+
+/* ---------------- 日结 ---------------- */
+function endDay(){
+  if(S.ended) return;
+  S.ended = true;
+  let fix = 400;
+  UPS.forEach(function(u){ fix += S.up[u.k] * (u.k==='doc'?260:u.k==='nurse'?140:180); });
+  S.cash -= fix; S.today.cost += fix;
+  const t = S.today, profit = t.income - t.cost;
+
+  let h='';
+  h+='<div class="mask"><div class="modal">';
+  h+='<h3>🌙 第 '+S.day+' 天 · 门诊日报</h3>';
+  h+='<div class="sub">接诊 '+t.seen+' 例 ｜ 成功 '+t.cured+' 例 ｜ 纠纷 '+t.dispute+' 起 ｜ 死亡 '+t.death+' 例</div>';
+  h+='<div class="res-line">';
+  h+='<div class="kv"><span>诊疗与手术收入</span><b style="color:#2f9e63">+'+fmtY(t.income)+'</b></div>';
+  h+='<div class="kv"><span>耗材检查与固定成本</span><b style="color:#d64545">−'+fmtY(t.cost)+'</b></div>';
+  h+='<div class="kv"><span>当日净利润</span><b style="color:'+(profit>=0?'#2f9e63':'#d64545')+'">'+(profit>=0?'+':'')+fmtY(profit)+'</b></div>';
+  h+='<div class="kv"><span>科室声誉</span><b>'+Math.round(S.rep)+' / 100</b></div>';
+  h+='</div>';
+  if(profit<0) h+='<div class="pearl" style="background:#fdf0f0;border-color:#d64545;color:#8f3232"><span class="h" style="color:#d64545">⚠️ 经营提示</span>今日亏损。少开不必要的检查、提高诊断准确率，或升级检验中心降低检查成本。</div>';
+  h+='<div class="foot"><button class="btnp" onclick="nextDay()">开始第 '+(S.day+1)+' 天</button></div>';
+  h+='</div></div>';
+  $('modalRoot').innerHTML=h;
+  save();
+}
+function nextDay(){
+  $('modalRoot').innerHTML='';
+  S.day++; S.clock=DAY_START; S.ended=false;
+  S.active=null; S.sel=null;
+  S.queue.forEach(function(id){ const p=S.patients[id]; if(p) p.done=true; });
+  S.queue=[]; S.patients={};
+  S.health = Math.min(100, S.health + 45);
+  S.today = {seen:0,income:0,cost:0,cured:0,dispute:0,death:0,booked:0,slots:8+S.rank*2};
+  render(); save();
+}
+
+/* ---------------- 升级 / 科研 ---------------- */
+function buyUp(k){
+  const u=UP_MAP[k], lv=S.up[k];
+  if(lv>=u.max) return;
+  const c=u.cost[lv];
+  if(S.cash<c){ toast('现金不足，需要 '+fmtY(c),'bad'); return; }
+  S.cash-=c; S.today.cost+=c; S.up[k]=lv+1;
+  toast('🏗 '+u.name+' 升级至 Lv.'+(lv+1),'ok');
+  render(); save();
+}
+function publishPaper(){
+  if(S.acad<8){ toast('学术点不足（需 8 点，当前 '+S.acad+'）','bad'); return; }
+  if(S.cash<2000){ toast('科研经费不足（需 ¥2,000）','bad'); return; }
+  S.acad-=8; S.cash-=2000; S.papers++;
+  S.rep=Math.min(100,S.rep+6); S.exp+=150;
+  const nr=rankOf(S.exp); if(nr!==S.rank){ S.rank=nr; toast('🎖 晋升：'+RANKS[nr].name,'ok'); }
+  else toast('📄 发表论文 1 篇！声誉 +6，经验 +150','ok');
+  render(); save();
+}
+function drinkCoffee(){
+  if(S.cash<80){ toast('现金不足','bad'); return; }
+  if(S.health>=100){ toast('精神状态很好，不需要咖啡','bad'); return; }
+  S.cash-=80; S.today.cost+=80;
+  S.health=Math.min(100,S.health+25);
+  toast('☕ 一杯美式下肚，精力 +25','ok');
+  render(); save();
+}
+function rankOf(exp){ let r=0; for(let i=0;i<RANKS.length;i++) if(exp>=RANKS[i].exp) r=i; return r; }
+
+/* ---------------- 渲染 ---------------- */
+function render(){
+  if(!S) return;
+  $('hCash').textContent = fmtY(S.cash);
+  $('hCash').style.color = S.cash<0 ? '#d64545' : '';
+  $('hRep').textContent = Math.round(S.rep);
+  const deptName = (DEPTS.find(d=>d.id===S.dept)||DEPTS[0]).name;
+  $('hdrSub').textContent = deptName + ' · 第 ' + S.day + ' 天 · ' + RANKS[S.rank].name;
+
+  const tabs = $('tabbar').children;
+  for(let i=0;i<tabs.length;i++) tabs[i].classList.toggle('on', tabs[i].dataset.tab===S.tab);
+
+  const map = {overview:pgOverview, clinic:pgClinic, reports:pgReports, records:pgRecords, dept:pgDept, save:pgSave};
+  const fn = map[S.tab] || pgOverview;
+  $('content').innerHTML = fn();
+  $('content').scrollTop = S._scroll || 0;
+}
+function switchTab(t){
+  S._scroll = 0;
+  S.tab = t;
+  render(); save();
+}
+
+/* ---- 门诊总览 ---- */
+function pgOverview(){
+  const r = RANKS[S.rank];
+  const nextR = RANKS[S.rank+1];
+  const hp = Math.round(S.health);
+  const hpCls = hp>=70?'g':hp>=40?'a':'r';
+  const hpTxt = hp>=85?'状态良好':hp>=60?'略有疲惫':hp>=35?'明显疲劳':'濒临透支';
+  const dayPct = Math.min(100, Math.max(0,(S.clock-DAY_START)/(DAY_END-DAY_START)*100));
+  const left = S.today.slots - S.today.booked;
+  const slotPct = S.today.slots ? (S.today.booked/S.today.slots*100) : 0;
+  const waitCnt = S.queue.length;
+  const allDone = left<=0 && waitCnt===0 && !S.active;
+
+  let h='';
+  h+='<div class="pg-title">门诊总览</div>';
+  h+='<div class="pg-sub">'+deptLabel()+' · 第 '+S.day+' 天 · 今日门诊 '+fmtClock(DAY_START)+' – '+fmtClock(DAY_END)+'</div>';
+
+  h+='<div class="grid2">';
+  h+='<div class="stat"><div class="h">⭐ 声望</div><div class="v">'+Math.round(S.rep)+'</div></div>';
+  h+='<div class="stat"><div class="h">💰 绩效工资</div><div class="v">'+fmtY(S.total.income)+'</div></div>';
+  h+='<div class="stat"><div class="h">🪪 当前职称</div><div class="v" style="font-size:16px">'+r.name+'</div></div>';
+  h+='<div class="stat"><div class="h">📈 总接诊量</div><div class="v">'+S.total.seen+'</div></div>';
+  h+='</div>';
+
+  // 医生健康
+  h+='<div class="card">';
+  h+='<div class="card-h"><span class="ico">💚</span>医生健康<span class="right"><span class="badge '+hpCls+'">'+hpTxt+'</span></span></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px">';
+  h+='<div class="bar '+(hp<40?'red':hp<70?'amber':'')+'" style="flex:1"><i style="width:'+hp+'%"></i></div>';
+  h+='<b class="mono" style="font-size:14px;min-width:32px;text-align:right">'+hp+'</b>';
+  h+='</div>';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap">';
+  h+='<div style="font-size:11.5px;color:var(--dim);flex:1;min-width:150px;line-height:1.55">每接诊一例会消耗精力，精力低于 25 时诊疗收入下降 15%</div>';
+  h+='<button class="upbtn" onclick="drinkCoffee()">☕ 提神 ¥80</button>';
+  h+='</div></div>';
+
+  // 门诊时间
+  h+='<div class="card">';
+  h+='<div class="card-h"><span class="ico">🕐</span>门诊时间<span class="right"><span class="badge t mono" style="font-size:12px">'+fmtClock(S.clock)+'</span></span></div>';
+  h+='<div class="bar blue"><i style="width:'+dayPct+'%"></i></div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);margin-top:8px">';
+  h+='<span>工作日 '+fmtClock(DAY_START)+' – '+fmtClock(DAY_END)+'</span><span>已用 '+Math.round(dayPct)+'%</span></div>';
+  h+='<div style="font-size:11px;color:var(--dim2);margin-top:6px;line-height:1.6">时间随诊疗操作推进，不自动流逝——你可以从容思考和追问。</div>';
+  h+='</div>';
+
+  // 今日号源
+  h+='<div class="card">';
+  h+='<div class="card-h"><span class="ico">🎫</span>今日号源<span class="right">已挂号 <b style="color:var(--txt)">'+S.today.booked+'</b> / '+S.today.slots+'</span></div>';
+  h+='<div class="bar"><i style="width:'+slotPct+'%"></i></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">';
+  h+='<div style="font-size:12px;color:var(--dim)">剩余号源 <b style="color:var(--teal-d);font-size:14px">'+Math.max(0,left)+'</b> 个</div>';
+  h+='<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">';
+  h+='<button class="btno" style="width:auto;padding:9px 14px" onclick="switchTab(\'clinic\')">候诊 '+waitCnt+'</button>';
+  h+='<button class="btnp" style="width:auto;padding:9px 16px" onclick="bookPatient()"'+(left<=0||S.ended?' disabled':'')+'>现场挂号</button>';
+  h+='</div></div></div>';
+
+  // 候诊列表
+  if(waitCnt>0){
+    h+='<div class="card">';
+    h+='<div class="card-h"><span class="ico">🪑</span>候诊患者<span class="right">'+waitCnt+' 人</span></div>';
+    h+='<div class="plist">'+queueRows()+'</div></div>';
+  } else {
+    h+='<div class="card"><div class="empty" style="padding:26px 10px"><span class="big">🪑</span>暂无候诊患者'+(left>0?'<br>点「现场挂号」叫号':'')+'</div></div>';
+  }
+
+  if(allDone){
+    h+='<button class="btnp" style="background:linear-gradient(180deg,#4a6b8a,#39536b);box-shadow:none" onclick="endDay()">今日门诊结束 · 查看日报</button>';
+  }
+  return h;
+}
+function deptLabel(){
+  const d = DEPTS.find(x=>x.id===S.dept) || DEPTS[0];
+  return d.name;
+}
+function queueRows(){
+  const arr = S.queue.map(function(id){ return S.patients[id]; }).filter(Boolean);
+  arr.sort(function(a,b){ const ca=DIS_MAP[a.dis].critical?0:1, cb=DIS_MAP[b.dis].critical?0:1; return ca-cb; });
+  return arr.map(function(p){
+    const d = DIS_MAP[p.dis];
+    return '<button class="prow'+(d.critical?' crit':'')+'" onclick="startClinic(S.patients[\''+p.id+'\'])">'
+      + '<div class="av">'+(p.sex==='女'?'👩':'👨')+'</div>'
+      + '<div class="info"><div class="n1"><span class="nm">'+p.name+'</span><span class="age">'+p.sex+' · '+p.age+'岁</span>'
+      + (d.critical?'<span class="badge r">危重</span>':'')
+      + (p.phase==='treat'?'<span class="badge a">待处置</span>':'')+'</div>'
+      + '<div class="cc">'+p.cc+'</div></div>'
+      + '<div class="go">接诊 ›</div></button>';
+  }).join('');
+}
+
+/* ---- 诊室接诊 ---- */
+function pgClinic(){
+  if(!S.active || !S.patients[S.active]){
+    let h='<div class="pg-title">诊室接诊</div>';
+    h+='<div class="pg-sub">点击候诊患者开始接诊，按 问诊 → 查体 → 检查 → 诊断 → 处置 的顺序进行</div>';
+    if(S.queue.length===0){
+      h+='<div class="card"><div class="empty"><span class="big">🩺</span>诊室空闲<br><span style="font-size:12px">回「门诊总览」点现场挂号叫号</span></div></div>';
+    } else {
+      h+='<div class="plist">'+queueRows()+'</div>';
+    }
+    return h;
+  }
+  const p = S.patients[S.active];
+  const d = DIS_MAP[p.dis];
+  const abn = vitalAbn(p.vitals);
+
+  let h='';
+  // 患者卡
+  h+='<div class="card">';
+  h+='<div class="phead">';
+  h+='<div class="av">'+(p.sex==='女'?'👩':'👨')+'</div>';
+  h+='<div style="flex:1;min-width:0">';
+  h+='<div class="nm">'+p.name+'</div>';
+  h+='<div class="meta">'+p.sex+' · '+p.age+' 岁 ｜ '+p.id+' ｜ '+d.dept+'</div>';
+  h+='<div class="tags"><span class="badge d">难度 '+'★'.repeat(d.diff)+'</span>'
+    +(d.critical?'<span class="badge r">危重 · 需立即处置</span>':'<span class="badge g">平稳</span>')
+    +'<span class="badge b">主诉：'+p.cc+'</span></div>';
+  h+='</div></div>';
+  h+='<div class="vitals">';
+  [['T','体温','°C'],['P','脉搏',''],['R','呼吸',''],['BP','血压',''],['SpO2','血氧','%'],['分诊','级别','']].forEach(function(v,i){
+    if(v[0]==='分诊'){
+      h+='<div class="v"><div class="k">分诊级别</div><div class="val" style="color:'+(d.critical?'#d64545':'#2f9e63')+'">'+(d.critical?'Ⅰ 级':'Ⅲ 级')+'</div></div>';
+    } else {
+      const a = abn[v[0]]||0;
+      h+='<div class="v'+(a===2?' abn':a===1?' warn':'')+'"><div class="k">'+v[1]+'</div><div class="val mono">'+p.vitals[v[0]]+'</div></div>';
+    }
+  });
+  h+='</div></div>';
+
+  // 问诊
+  h+='<div class="card">';
+  h+='<div class="card-h"><span class="ico">💬</span>问诊追问<span class="right">'+p.hIdx+' / '+d.h.length+'</span></div>';
+  if(p.hIdx===0){
+    h+='<div style="font-size:12.5px;color:var(--dim);line-height:1.7;margin-bottom:10px">先询问病史，获取诊断线索</div>';
+  }
+  for(let i=0;i<p.hIdx;i++){
+    h+='<div class="qa"><div class="q">问'+(i+1)+' · '+Q_LABEL[Math.min(i,Q_LABEL.length-1)]+'</div><div class="a">'+d.h[i]+'</div></div>';
+  }
+  if(p.hIdx < d.h.length){
+    h+='<button class="askmore" onclick="askMore()">';
+    h+='<div class="t"><b>'+(p.hIdx===0?'开始问诊':'继续追问')+'</b><span>获取下一条诊断线索 · 2 分钟</span></div><div class="plus">＋</div></button>';
+    if(p.hIdx>0) h+='<button class="btno" style="margin-top:8px;font-size:12px;padding:8px" onclick="askAll()">一次问完（'+((d.h.length-p.hIdx)*2)+' 分钟）</button>';
+  } else {
+    h+='<div style="font-size:11.5px;color:var(--green);margin-top:2px">✓ 病史采集完成</div>';
+  }
+  h+='</div>';
+
+  // 查体
+  h+='<div class="card">';
+  h+='<div class="card-h"><span class="ico">🩺</span>体格检查<span class="right">'+p.sIdx+' / '+d.s.length+'</span></div>';
+  for(let i=0;i<p.sIdx;i++){
+    h+='<div class="qa"><div class="q">查体'+(i+1)+' · '+E_LABEL[Math.min(i,E_LABEL.length-1)]+'</div><div class="a">'+d.s[i]+'</div></div>';
+  }
+  if(p.sIdx < d.s.length){
+    h+='<button class="askmore" onclick="examMore()">';
+    h+='<div class="t"><b>'+(p.sIdx===0?'开始查体':'继续查体')+'</b><span>获取下一条体征线索 · 3 分钟</span></div><div class="plus">＋</div></button>';
+    if(p.sIdx>0) h+='<button class="btno" style="margin-top:8px;font-size:12px;padding:8px" onclick="examAll()">一次查完（'+((d.s.length-p.sIdx)*3)+' 分钟）</button>';
+  } else {
+    h+='<div style="font-size:11.5px;color:var(--green);margin-top:2px">✓ 体格检查完成</div>';
+  }
+  h+='</div>';
+
+  if(p.phase==='work'){
+    // 检查
+    h+='<div class="card">';
+    h+='<div class="card-h"><span class="ico">🧪</span>开立辅助检查<span class="right">已开 '+Object.keys(p.tests).length+' 项</span></div>';
+    h+='<div class="testgrid">';
+    TESTS.forEach(function(t){
+      const done = !!p.tests[t.id];
+      const c = testCost(t);
+      h+='<button class="tbtn'+(done?' done':'')+'" onclick="doTest(\''+t.id+'\')"'+(done?' disabled':'')+'>';
+      h+='<span class="n">'+t.ico+' '+t.name+'</span>';
+      h+='<span class="c">'+(done?'✓ 已出报告':fmtY(c.cost)+' · '+c.min+'分')+'</span></button>';
+    });
+    h+='</div>';
+    if(Object.keys(p.tests).length>0){
+      h+='<button class="btno" style="margin-top:10px;font-size:12.5px" onclick="switchTab(\'reports\')">查看检查报告 ›</button>';
+    }
+    h+='</div>';
+
+    // 诊断
+    h+='<div class="card">';
+    h+='<div class="card-h"><span class="ico">📝</span>明确诊断<span class="right">误诊 '+p.dxTries+' / 3</span></div>';
+    const opts = caseOptions(p);
+    opts.forEach(function(o){
+      const ruled = p.ruled.indexOf(o)>=0;
+      const sel = S.sel===o;
+      h+='<button class="dxopt'+(ruled?' off':'')+(sel?' sel':'')+'" onclick="pickDx(\''+o+'\')">';
+      h+='<span class="rd"></span><span>'+o+'</span></button>';
+    });
+    h+='<button class="btno" style="margin-top:2px;font-size:12.5px" onclick="consult()"'+(p.ruled.length>=2||S.cash<400?' disabled':'')+'>👨‍⚕️ 上级会诊排除 2 项（¥400）</button>';
+    h+='<button class="btnp" style="margin-top:10px" onclick="submitDx()"'+(S.sel?'':' disabled')+'>确认诊断</button>';
+    h+='</div>';
+  } else {
+    // 处置
+    h+='<div class="card">';
+    h+='<div class="card-h"><span class="ico">💉</span>选择处置方案</div>';
+    h+='<div style="font-size:12px;color:var(--dim);margin-bottom:11px;line-height:1.6">已确认诊断：<b style="color:var(--teal-d)">'+d.name+'</b></div>';
+    d.tx.forEach(function(t,i){
+      const op = isSurgical(t.l);
+      h+='<button class="treat'+(op?' op':'')+'" onclick="doTreat('+i+')">';
+      h+='<span class="ar">'+(op?'🔪':'▸')+'</span><span style="flex:1">'+t.l+'</span></button>';
+    });
+    h+='<div style="font-size:11px;color:var(--dim2);line-height:1.6;margin-top:4px">含手术/抢救操作的方案会进入限时处置，请做好准备</div>';
+    h+='</div>';
+  }
+  return h;
+}
+
+/* ---- 检查报告 ---- */
+function pgReports(){
+  let h='<div class="pg-title">检查报告</div>';
+  h+='<div class="pg-sub">查看所有已返回的化验、影像与功能检查结果</div>';
+  const p = S.active ? S.patients[S.active] : null;
+  if(!p){
+    h+='<div class="card"><div class="empty"><span class="big">📄</span>当前没有正在接诊的患者<br><span style="font-size:12px">接到患者后开立的检查会显示在这里</span></div></div>';
+    return h;
+  }
+  const d = DIS_MAP[p.dis];
+  const keys = Object.keys(p.tests);
+  h+='<div class="card tight" style="background:#f9fbfc">';
+  h+='<div style="display:flex;align-items:center;gap:9px">';
+  h+='<div class="av" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#fff;border:1px solid var(--line);font-size:16px">'+(p.sex==='女'?'👩':'👨')+'</div>';
+  h+='<div style="flex:1"><div style="font-size:13.5px;font-weight:600">'+p.name+' · '+p.sex+' · '+p.age+'岁</div>';
+  h+='<div style="font-size:11px;color:var(--dim)">'+p.id+' ｜ '+d.dept+' ｜ 共 '+keys.length+' 项报告</div></div></div></div>';
+
+  if(keys.length===0){
+    h+='<div class="card"><div class="empty"><span class="big">🧪</span>尚未开立任何检查<br><span style="font-size:12px">回「诊室接诊」开单</span></div></div>';
+    return h;
+  }
+  keys.forEach(function(k){
+    const t = TEST_MAP[k], r = p.tests[k];
+    const urgent = /↑|↓|\+\+\+|缺损|抬高|增宽|实变|积液|出血|破|消失|阳性|压缩|畸形|异常/.test(r.res);
+    h+='<div class="rep">';
+    h+='<div class="ic">'+t.ico+'</div>';
+    h+='<div class="tx"><div class="t1">'+t.name+(urgent?'<span class="badge r">异常</span>':'<span class="badge g">未见异常</span>')+'</div>';
+    h+='<div class="t2">'+r.res+'</div></div></div>';
+  });
+  h+='<button class="btno" style="margin-top:6px" onclick="switchTab(\'clinic\')">‹ 返回诊室</button>';
+  return h;
+}
+
+/* ---- 病历档案 ---- */
+function pgRecords(){
+  let h='<div class="pg-title">病历档案</div>';
+  h+='<div class="pg-sub">已完成病例的诊疗记录与结局</div>';
+  if(S.history.length===0){
+    h+='<div class="card"><div class="empty"><span class="big">📁</span>暂无病历记录<br><span style="font-size:12px">完成第一例诊疗后会出现在这里</span></div></div>';
+    return h;
+  }
+  const okCnt = S.history.filter(function(x){ return x.ok; }).length;
+  h+='<div class="card tight" style="display:flex;gap:14px;text-align:center">';
+  h+='<div style="flex:1"><div style="font-size:18px;font-weight:700">'+S.history.length+'</div><div style="font-size:11px;color:var(--dim)">总病例</div></div>';
+  h+='<div style="flex:1;border-left:1px solid var(--line);border-right:1px solid var(--line)"><div style="font-size:18px;font-weight:700;color:var(--green)">'+okCnt+'</div><div style="font-size:11px;color:var(--dim)">诊疗成功</div></div>';
+  h+='<div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--red)">'+(S.history.length-okCnt)+'</div><div style="font-size:11px;color:var(--dim)">失败/欠妥</div></div>';
+  h+='</div>';
+  S.history.forEach(function(r){
+    const col = r.ok ? '#2f9e63' : (r.result.indexOf('🟡')===0 ? '#c07a1a' : '#d64545');
+    h+='<div class="rec">';
+    h+='<div class="dot" style="background:'+col+'"></div>';
+    h+='<div class="tx"><div class="t1">'+r.name+' <span style="font-weight:400;color:var(--dim);font-size:11.5px">'+r.sex+' · '+r.age+'岁</span>'
+      +(r.crit?'<span class="badge r" style="font-size:9.5px">危重</span>':'')
+      +'<span style="margin-left:auto;font-size:11px;color:var(--dim)">第 '+r.day+' 天</span></div>';
+    h+='<div class="t2">诊断：'+r.dx+'<br>结局：<span style="color:'+col+'">'+r.result+'</span> ｜ 收入 '+fmtY(r.income)+'</div></div></div>';
+  });
+  return h;
+}
+
+/* ---- 科室设置 ---- */
+function pgDept(){
+  let h='<div class="pg-title">科室设置</div>';
+  h+='<div class="pg-sub">升级设备与团队，提升效率与危重症救治能力</div>';
+  UPS.forEach(function(u){
+    const lv=S.up[u.k], max=lv>=u.max, c=max?0:u.cost[lv];
+    h+='<div class="up">';
+    h+='<div class="ic">'+u.ico+'</div>';
+    h+='<div class="tx"><div class="t1">'+u.name+'<span style="font-size:10.5px;color:var(--dim2);font-weight:400">Lv.'+lv+'</span>';
+    h+='<span class="pips">';
+    for(let i=0;i<u.max;i++) h+='<i class="'+(i<lv?'on':'')+'"></i>';
+    h+='</span></div><div class="t2">'+u.desc+'</div></div>';
+    h+='<button class="upbtn" onclick="buyUp(\''+u.k+'\')"'+(max||S.cash<c?' disabled':'')+'>'+(max?'满级':fmtY(c))+'</button>';
+    h+='</div>';
+  });
+  h+='<div class="up" style="border-color:#d9cef0;background:#fbfaff">';
+  h+='<div class="ic" style="background:#f3effc;border-color:#e2d9f7">📄</div>';
+  h+='<div class="tx"><div class="t1">科研论文<span style="font-size:10.5px;color:var(--dim2);font-weight:400">已发表 '+S.papers+' 篇</span></div>';
+  h+='<div class="t2">消耗 8 学术点 + ¥2,000，声誉 +6、经验 +150（当前学术点 '+S.acad+'）</div></div>';
+  h+='<button class="upbtn" onclick="publishPaper()"'+(S.acad<8||S.cash<2000?' disabled':'')+'>发表</button>';
+  h+='</div>';
+  h+='<div class="card" style="margin-top:12px"><div class="card-h"><span class="ico">🪪</span>职称与收入</div>';
+  RANKS.forEach(function(r,i){
+    const on = i===S.rank;
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed #edf2f6;font-size:12.5px">';
+    h+='<span style="color:'+(on?'var(--teal)':'var(--dim2)')+'">'+(on?'●':'○')+'</span>';
+    h+='<span style="'+(on?'font-weight:700;color:var(--teal-d)':'color:#5d7385')+'">'+r.name+'</span>';
+    h+='<span style="margin-left:auto;color:var(--dim)">经验 '+r.exp+' ｜ 收入 ×'+r.mul+'</span></div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+/* ---- 存档设置 ---- */
+function pgSave(){
+  let h='<div class="pg-title">存档设置</div>';
+  h+='<div class="pg-sub">游戏进度自动保存在本机浏览器，可手动存档或重新开始</div>';
+  h+='<div class="card"><div class="card-h"><span class="ico">💾</span>当前进度</div>';
+  h+='<div style="font-size:12.5px;line-height:2.1;color:#3c5260">';
+  h+='科室：<b>'+deptLabel()+'</b><br>';
+  h+='第 <b>'+S.day+'</b> 天 ｜ 职称 <b>'+RANKS[S.rank].name+'</b><br>';
+  h+='累计接诊 <b>'+S.total.seen+'</b> 例 ｜ 声誉 <b>'+Math.round(S.rep)+'</b><br>';
+  h+='现金 <b>'+fmtY(S.cash)+'</b> ｜ 绩效 <b>'+fmtY(S.total.income)+'</b>';
+  h+='</div></div>';
+  h+='<button class="btnp" onclick="doSave()">手动存档</button>';
+  h+='<div style="height:9px"></div>';
+  h+='<button class="btno" onclick="doReset()">清空存档 · 重新选择科室</button>';
+  h+='<div class="card" style="margin-top:14px"><div class="card-h"><span class="ico">📖</span>玩法说明</div>';
+  h+='<div style="font-size:12.5px;line-height:1.95;color:#3c5260">';
+  h+='· 每天 8 个号源，点「现场挂号」叫号，再进诊室接诊<br>';
+  h+='· 按 问诊 → 查体 → 检查 → 诊断 → 处置 的顺序收集线索<br>';
+  h+='· 时间只随操作推进，不会自动流逝，可从容判断<br>';
+  h+='· 危重患者处置时会进入<b>限时抢救</b>，手术会播放<b>读条</b><br>';
+  h+='· 误诊扣声誉，连续三次误诊病例失控；上级会诊可排除 2 项<br>';
+  h+='· 现金用于检查、升级与科研；精力过低会降低收入';
+  h+='</div></div>';
+  return h;
+}
+function doSave(){ save(); toast('已存档','ok'); }
+function doReset(){
+  $('modalRoot').innerHTML =
+    '<div class="mask"><div class="modal">'
+    + '<h3>重新开始？</h3><div class="sub">将清空当前所有进度，重新选择科室</div>'
+    + '<div class="foot"><button class="btno" onclick="closeModal()">取消</button>'
+    + '<button class="btnp" onclick="hardReset()">确认清空</button></div></div></div>';
+}
+function hardReset(){
+  localStorage.removeItem(SAVE_KEY);
+  S = null;
+  $('modalRoot').innerHTML='';
+  showDeptSelect(true);
+}
+
+/* ---------------- 选择科室 ---------------- */
+function showDeptSelect(isReset){
+  let h='<div class="mask" style="align-items:flex-start;padding-top:32px"><div class="modal" style="max-height:82vh">';
+  h+='<img class="onboard-art" src="assets/consultation.webp" alt="仁心医院门诊诊室"><h3>✚ 仁心医院 · 入职登记</h3>';
+  h+='<div class="sub">'+(isReset?'重新选择科室':'选择你的科室')+'<br>不同科室拥有专属病例库与常见病种，开局身份为实习医师。</div>';
+  DEPTS.forEach(function(d){
+    h+='<button class="card" style="width:100%;text-align:left;margin-bottom:10px;display:block" onclick="chooseDept(\''+d.id+'\')">';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">';
+    h+='<div style="width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--teal-l);border:1px solid var(--teal-b);font-size:17px">'+d.ico+'</div>';
+    h+='<div style="font-size:15px;font-weight:700">'+d.name+'</div></div>';
+    h+='<div style="font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:9px">'+d.desc+'</div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    d.tags.forEach(function(t){ h+='<span class="badge t">'+t+'</span>'; });
+    h+='</div></button>';
+  });
+  h+='<div style="font-size:11px;color:var(--dim2);text-align:center;line-height:1.7">本游戏仅供娱乐，不构成任何医疗建议<br>所有病例与诊疗方案均为模拟内容</div>';
+  h+='</div></div>';
+  $('modalRoot').innerHTML = h;
+}
+function chooseDept(id){
+  const keep = S && S.total ? S.total : null;
+  S = newGame(id);
+  if(keep && keep.seen>0){ /* 重置不继承 */ }
+  $('modalRoot').innerHTML='';
+  S.today.slots = 8;
+  render(); save();
+  toast('欢迎来到'+deptLabel()+'，开始第一天的门诊','ok');
+}
+
+/* ---------------- 启动 ---------------- */
+function boot(){
+  const saved = load();
+  if(saved){
+    S = saved;
+    if(!S.history) S.history=[];
+    if(typeof S.health!=='number') S.health=100;
+    if(!S.tab) S.tab='overview';
+    render();
+  } else {
+    S = newGame('im');
+    S.tab='overview';
+    render();
+    showDeptSelect(false);
+  }
+}
+window.addEventListener('beforeunload', save);
+boot();
+</script>
+<script src="hospital.js"></script><script>if(location.protocol!=="file:"&&"serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script></body>
+</html>
