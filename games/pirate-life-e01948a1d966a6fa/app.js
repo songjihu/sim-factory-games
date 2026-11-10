@@ -22,3 +22,9 @@ async function importSave(file){if(!file)return;try{if(file.size>200000)throw Er
 function confirmImport(){state=window.pendingImport;state.event=null;blocked=false;state.saved=Date.now();localStorage.setItem(Pirate.KEY,JSON.stringify(state));$('#modal').close();render();}
 window.addEventListener('storage',e=>{if(e.key===Pirate.KEY&&state){blocked=true;modal('<h3>其他标签页已修改存档</h3><p>本页操作暂停，避免覆盖。请刷新后继续最新进度，或导出本页备份。</p>');}});
 startScreen();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// A click outside the dialog dismisses it; dragging from inside does not.
+{const dialog=document.querySelector('#modal');let downOutside=false;
+const outside=e=>{const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;};
+dialog.addEventListener('pointerdown',e=>{downOutside=e.target===dialog&&outside(e);});
+dialog.addEventListener('click',e=>{if(downOutside&&e.target===dialog&&outside(e))dialog.close();downOutside=false;});}
