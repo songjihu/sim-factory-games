@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 const riderLevelGoals=[0,2,6,12,20,32,48,68,92,120];
 function riderLevel(){let level=1;for(let i=1;i<riderLevelGoals.length;i++)if(totalDone>=riderLevelGoals[i])level=i+1;return level}
 function careerCanUse(kind){return riderLevel()>=(kind==='nav'?2:4)}
