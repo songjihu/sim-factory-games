@@ -1,0 +1,27 @@
+'use strict';
+// Screen-space directional driving. Input never gets reinterpreted as throttle/steering.
+const fictionalNames=vehicleCatalog.map(v=>v.name);
+vehicleCatalog.forEach((v,i)=>v.name=fictionalNames[i]);
+let arcadeImpacts=0;
+hitVehicle=function(car){if(typeof gmAutoDrive!=="undefined"&&gmAutoDrive){car.speed=0;carVelocity*=.85;return}if(car.flying||car.hidden)return;const speed=Math.max(170,carVelocity),side=((arcadeImpacts++)%2?1:-1),angle=player.angle+side*.8;car.flying={age:0,vx:Math.cos(angle)*(speed+1500),vy:Math.sin(angle)*(speed+1500)-450,spin:side*10,angle:car.angle||0};car.speed=0;carVelocity*=.9;hitCD=.18;toast('创飞！能量 +10%')};
+function updateFlyingTraffic(dt){for(const car of traffic){if(car.hidden){if(elapsed>=car.respawnAt){car.hidden=false;car.flying=null;spawnLaneTraffic(car,traffic.indexOf(car)+9)}continue}if(!car.flying)continue;const f=car.flying;f.age+=dt;car.x+=f.vx*dt;car.y+=f.vy*dt;car.angle+=f.spin*dt;car.flyScale=1+Math.min(.65,f.age*.8);car.flyAlpha=Math.max(0,1-f.age/.85);if(f.age>=.85){car.hidden=true;car.flying=null;car.respawnAt=elapsed+5;car.flyScale=1;car.flyAlpha=1}}}
+function directionalRoad(p,desired){const cx=Math.floor(p.x/ROAD_CELL),cy=Math.floor(p.y/ROAD_CELL),ids=new Set();for(let x=cx-2;x<=cx+2;x++)for(let y=cy-2;y<=cy+2;y++)for(const i of segmentCells.get(x+','+y)||[])ids.add(i);let best=null;for(const i of ids){const s=citySegments[i],q=project(p,s.a,s.b),d=dist(p,q),clearance=s.road.width/2-11-d;if(!best||clearance>best.clearance)best={q,d,clearance,s}}return best}
+
+// Soft shoulders: surface resistance changes speed, never cancels a landward input.
+function distanceToRoadEdge(p){let shortest=Infinity;for(const s of citySegments){const q=project(p,s.a,s.b);shortest=Math.min(shortest,Math.max(0,dist(p,q)-s.road.width/2));if(shortest===0)return 0}return shortest}
+function drivingGrip(p){const distance=distanceToRoadEdge(p);return .25+.75*Math.exp(-distance/180)}
+driveVehicle=function(dt,dx,dy,sprint){
+const keyboard=['w','a','s','d','ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].some(k=>keys.has(k));let x=keyboard?(keys.has('d')||keys.has('ArrowRight')?1:0)-(keys.has('a')||keys.has('ArrowLeft')?1:0):joy.x,y=keyboard?(keys.has('s')||keys.has('ArrowDown')?1:0)-(keys.has('w')||keys.has('ArrowUp')?1:0):joy.y;const mag=Math.hypot(x,y),v=vehicleStats(),gm=gmSettings.tripleSpeed?3:1;
+if(mag<.08){carVelocity=Math.max(0,carVelocity-v.accel*3*gm*dt);return}x/=mag;y/=mag;const desired=Math.atan2(y,x),grip=drivingGrip(player);player.angle=desired;const goal=v.speed*(sprint?1.35:1)*gm*Math.min(1,mag)*drivingFactor*grip;
+// Damping is per second, independent of frame rate and collision substep count.
+carVelocity+=(goal-carVelocity)*(1-Math.exp(-dt*(goal<carVelocity?4:3)));const steps=Math.max(1,Math.ceil(carVelocity*dt/3));
+for(let i=0;i<steps;i++){const amount=carVelocity*dt/steps;let p={x:player.x+x*amount,y:player.y+y*amount};const edge=directionalRoad(p,desired);
+if(!land(p)&&(!edge||edge.clearance<0)){const near=directionalRoad(player,desired);if(!near)continue;const len=dist(near.s.a,near.s.b),tx=(near.s.b.x-near.s.a.x)/len,ty=(near.s.b.y-near.s.a.y)/len,along=x*tx+y*ty;const move=along*amount*.65;p={x:player.x+tx*move,y:player.y+ty*move};const e=directionalRoad(p,desired);if(e&&e.clearance<1){const d=dist(p,e.q),push=Math.min(d,1-e.clearance);if(d){p.x+=(e.q.x-p.x)/d*push;p.y+=(e.q.y-p.y)/d*push}}if(Math.abs(move)>.00001)player.angle=Math.atan2(ty*move,tx*move)}
+p.x=Math.max(12,Math.min(WORLD_W-12,p.x));p.y=Math.max(12,Math.min(WORLD_H-12,p.y));for(const car of traffic)if(!car.hidden&&!car.flying&&dist(car,p)<65&&vehicleOverlap({...p,angle:player.angle},car))hitVehicle(car);player.x=p.x;player.y=p.y}playerLane=null;
+};
+// Preserve the original responsive manual controller before automatic-driving wrappers.
+const classicManualDrive=driveVehicle;
+// Red lights use the actual current position rather than the previous lane controller's cursor.
+citySignalZone=function(p){return cityJunctions.some(n=>dist(p,n)<75)};
+function parkAtRoadside(){let best=null;for(const s of citySegments){const length=dist(s.a,s.b);if(length<90)continue;const q=project(player,s.a,s.b),t=Math.max(35/length,Math.min(1-35/length,q.t)),point={x:s.a.x+(s.b.x-s.a.x)*t,y:s.a.y+(s.b.y-s.a.y)*t},score=dist(player,point);if(!best||score<best.score)best={s,point,score}}if(!best)return;const a=Math.atan2(best.s.b.y-best.s.a.y,best.s.b.x-best.s.a.x),offset=Math.max(0,best.s.road.width/2-25);player.x=best.point.x-Math.sin(a)*offset;player.y=best.point.y+Math.cos(a)*offset;player.angle=a;carVelocity=0;playerLane=null;joy.x=joy.y=0;hitCD=2;traffic.length=0;updateLaneTraffic();}
+function initArcadeUI(){const controls=document.querySelector('.lanecontrols');if(controls)controls.style.display='none';document.querySelector('.rightcontrols>span').textContent='摇杆 / WASD：推向哪就往哪 · Shift / 加速键加速';const oldStart=start;start=function(){oldStart();parkAtRoadside();save();updateHUD()};const initialRoad=directionalRoad(player,player.angle);if(!initialRoad||initialRoad.clearance<2)parkAtRoadside();const oldTick=tick;tick=function(dt){oldTick(dt);if(state==='playing')updateFlyingTraffic(dt)};const hud=updateHUD;updateHUD=function(){hud();$('boost').innerHTML='⚡ 加速<small>'+currentVehicle().name+' · '+Math.round(carVelocity*.15)+' km/h<span id="energy" hidden>'+Math.floor(energy)+'</span></small>'};updateHUD()}

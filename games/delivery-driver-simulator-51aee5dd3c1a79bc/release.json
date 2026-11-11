@@ -1,0 +1,174 @@
+{
+  "name": "单王之王",
+  "version": "1.0.0",
+  "features": [
+    "无广告",
+    "等级成长",
+    "每日配送目标",
+    "10款车辆",
+    "爆闪/创飞能量球",
+    "五星追逐"
+  ],
+  "images": [
+    {
+      "file": "assets\\vehicles\\aito-m9-side-cartoon-v3.webp",
+      "bytes": 18732,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\aito-m9-top-cartoon-v3.webp",
+      "bytes": 6934,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\byd-seagull-side-cartoon-v3.webp",
+      "bytes": 24496,
+      "size": [
+        640,
+        320
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\byd-seagull-top-cartoon-v3.webp",
+      "bytes": 7804,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\li-l9-side-cartoon-v3.webp",
+      "bytes": 17432,
+      "size": [
+        640,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\li-l9-top-cartoon-v3.webp",
+      "bytes": 6722,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\maextro-s800-side-cartoon-v3.webp",
+      "bytes": 16608,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\maextro-s800-top-cartoon-v3.webp",
+      "bytes": 6810,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\nio-et5-side-cartoon-v3.webp",
+      "bytes": 19420,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\nio-et5-top-cartoon-v3.webp",
+      "bytes": 8224,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xiaomi-su7-side-cartoon-v3.webp",
+      "bytes": 18718,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xiaomi-su7-top-cartoon-v3.webp",
+      "bytes": 7010,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xiaomi-yu7-side-cartoon-v3.webp",
+      "bytes": 22706,
+      "size": [
+        640,
+        240
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xiaomi-yu7-top-cartoon-v3.webp",
+      "bytes": 8212,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xp-p7-side-cartoon-v3.webp",
+      "bytes": 17052,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\xp-p7-top-cartoon-v3.webp",
+      "bytes": 7210,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\yangwang-u9-side-cartoon-v3.webp",
+      "bytes": 23064,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\yangwang-u9-top-cartoon-v3.webp",
+      "bytes": 10778,
+      "size": [
+        112,
+        256
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\zeekr-001-side-cartoon-v3.webp",
+      "bytes": 19106,
+      "size": [
+        640,
+        213
+      ]
+    },
+    {
+      "file": "assets\\vehicles\\zeekr-001-top-cartoon-v3.webp",
+      "bytes": 7794,
+      "size": [
+        112,
+        256
+      ]
+    }
+  ]
+}

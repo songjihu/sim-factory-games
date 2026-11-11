@@ -1,0 +1,10 @@
+'use strict';
+// Clean traced centerlines before segments, junctions and lanes are constructed.
+function refineRoadGeometry(roads){const nodes=new Map(),key=p=>p.x.toFixed(4)+','+p.y.toFixed(4);for(const r of roads){r.points=r.points.map(p=>{const k=key(p);if(!nodes.has(k))nodes.set(k,{p,neighbors:new Set()});return nodes.get(k).p});for(let i=1;i<r.points.length;i++){const a=nodes.get(key(r.points[i-1])),b=nodes.get(key(r.points[i]));a.neighbors.add(b);b.neighbors.add(a)}}
+const seen=new Set(),mark=(a,b)=>[key(a.p),key(b.p)].sort().join('|');let straightened=0,smoothed=0;
+for(const start of nodes.values()){if(start.neighbors.size===2)continue;for(const next of start.neighbors){if(seen.has(mark(start,next)))continue;const chain=[start,next];seen.add(mark(start,next));let prev=start,cur=next;while(cur.neighbors.size===2){const following=[...cur.neighbors].find(n=>n!==prev);if(!following||seen.has(mark(cur,following)))break;seen.add(mark(cur,following));chain.push(following);prev=cur;cur=following}if(chain.length<3)continue;
+const original=chain.map(n=>({...n.p})),cumulative=[0];for(let i=1;i<original.length;i++)cumulative.push(cumulative.at(-1)+Math.hypot(original[i].x-original[i-1].x,original[i].y-original[i-1].y));const length=cumulative.at(-1),a=original[0],b=original.at(-1),dx=b.x-a.x,dy=b.y-a.y,chord=Math.hypot(dx,dy);if(chord<20||length<60)continue;
+const deviation=Math.max(...original.map(p=>Math.abs((p.x-a.x)*dy-(p.y-a.y)*dx)/chord)),straight=deviation<Math.max(22,chord*.018)&&length/chord<1.06;
+for(let i=1;i<chain.length-1;i++){let p;if(straight){const t=cumulative[i]/length;p={x:a.x+dx*t,y:a.y+dy*t}}else{let x=0,y=0,w=0;for(let j=0;j<original.length;j++){const delta=Math.abs(cumulative[j]-cumulative[i]);if(delta>210)continue;const weight=Math.exp(-delta*delta/(2*70*70));x+=original[j].x*weight;y+=original[j].y*weight;w+=weight}const blend=Math.min(1,cumulative[i]/110,(length-cumulative[i])/110);p={x:original[i].x+(x/w-original[i].x)*blend,y:original[i].y+(y/w-original[i].y)*blend}}Object.assign(chain[i].p,p)}if(straight)straightened++;else smoothed++;
+}}
+return {straightened,smoothed};}
