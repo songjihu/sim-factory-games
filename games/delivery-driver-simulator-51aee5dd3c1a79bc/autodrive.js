@@ -9,6 +9,8 @@ if(Math.hypot(joy.x,joy.y)>.08||['w','a','s','d','ArrowUp','ArrowDown','ArrowLef
 const destination=autoDestination();if(dist(player,destination)<25){carVelocity=0;return}
 if(!autoTrip||autoTrip.destination!==destination||dist(player,autoTrip.last)>180){const points=cityRoute(player,destination).points.map(p=>({...p}));if(points.length<2)return;autoTrip={destination,...makeLaneGeometry(points),at:0,lateral:0,last:{...player}}}
 const trip=autoTrip,base=laneSample(trip,trip.at,1,0),tx=Math.cos(base.angle),ty=Math.sin(base.angle),nx=-ty,ny=tx,near=directionalRoad(base,0),four=near&&near.s.road.lanes===4;
+// Signal approach must follow the planned lane, including when starting from rest.
+player.angle=base.angle;
 const cars=traffic.filter(c=>!c.hidden&&!c.flying),relative=c=>{const dx=c.x-base.x,dy=c.y-base.y;return {front:dx*tx+dy*ty,side:dx*nx+dy*ny,heading:Math.cos((c.angle||0)-base.angle)}};
 const leader=cars.map(c=>({c,...relative(c)})).filter(c=>c.front>0&&c.front<220&&Math.abs(c.side)<24&&c.heading>.5).sort((a,b)=>a.front-b.front)[0];
 const atJunction=cityJunctions.some(p=>dist(p,base)<100),passingClear=four&&!atJunction&&cars.every(c=>{const r=relative(c);return !(r.front>-100&&r.front<220&&Math.abs(r.side+32)<27)}),outerClear=cars.every(c=>{const r=relative(c);return !(r.front>-85&&r.front<150&&Math.abs(r.side)<27)});
