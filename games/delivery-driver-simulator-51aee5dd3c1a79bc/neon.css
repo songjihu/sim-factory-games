@@ -42,4 +42,10 @@
 
 #gmopen[hidden]{display:none!important}
 
+/* Keep the road ahead clear: a small left information block and five corner stars. */
+.mapmode #nav{top:48px;left:10px;right:auto;bottom:auto;width:110px;min-height:0;max-height:110px;padding:7px 8px;font-size:10px;line-height:1.55;white-space:pre-line;overflow:hidden;background:#203b48e8;border:1px solid #b1d6cc55;border-radius:8px;box-shadow:none;pointer-events:none}
+.mapmode #trafficlight{display:none!important}
+.mapmode #wantedstars{top:10px;right:55px;left:auto;width:76px;padding:2px 0;background:none;border:0;font-size:15px;line-height:20px;letter-spacing:0;white-space:nowrap;text-align:center;box-shadow:none;z-index:3}
+@media(max-height:720px){.mapmode #nav{top:43px;width:104px;font-size:9px;padding:6px 7px;line-height:1.5}.mapmode #wantedstars{font-size:14px;right:51px}}
+
 #vehiclegoal{flex:none;display:block;margin:0 10px 6px;padding:7px 10px;border:1px solid #8ebcb344;border-radius:10px;background:#203b48;color:#d5e8e2;text-align:left;touch-action:manipulation}.vehiclegoalhead,.vehiclegoalbody{display:flex;align-items:center;justify-content:space-between;gap:8px}.vehiclegoalhead{font-size:10px;line-height:1.4}.vehiclegoalhead b{color:#ffdca8;font-size:15px;margin-left:3px}.vehiclegoalhead>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vehiclegoalbody{margin-top:4px}.vehiclegoaltrack{height:5px;flex:1;background:#142b35;border-radius:5px;overflow:hidden}.vehiclegoaltrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8adacc,#efb2d3);transition:width .2s}#nextcarremaining{font-size:9px;white-space:nowrap}.skillstatus{font-size:10px;white-space:nowrap;color:#c1e1d9}.showroomskill small{line-height:1.6}
