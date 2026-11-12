@@ -16,7 +16,9 @@ points.push({...endpoint});
 for(let pass=0;pass<3;pass++){const smooth=[points[0]];for(let i=1;i<points.length-1;i++){const p=points[i],a=points[i-1],b=points[i+1],r=Math.min(24,dist(a,p)*.22,dist(p,b)*.22),da=dist(a,p)||1,db=dist(p,b)||1,u={x:p.x+(a.x-p.x)*r/da,y:p.y+(a.y-p.y)*r/da},v={x:p.x+(b.x-p.x)*r/db,y:p.y+(b.y-p.y)*r/db};if(road(u.x,u.y)&&road(v.x,v.y)&&road((u.x+v.x)/2,(u.y+v.y)/2))smooth.push(u,v);else smooth.push(p)}smooth.push(points.at(-1));points.splice(0,points.length,...smooth)}
 // Project any off-pavement corner samples back onto the actual road geometry.
 const safe=[points[0]];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.max(1,Math.ceil(dist(a,b)/4));for(let k=1;k<=n;k++){const t=k/n,p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};if(!road(p.x,p.y)){const q=nearSegment(p);p.x=q.x;p.y=q.y}safe.push(p)}}
-let length=0;for(let i=1;i<safe.length;i++)length+=dist(safe[i-1],safe[i]);return {points:safe,length,key:base.key}};
+// Keep every bend and projection correction, but discard collinear subdivision samples.
+const compact=[];for(const p of safe){while(compact.length>1){const a=compact.at(-2),b=compact.at(-1),dx=p.x-a.x,dy=p.y-a.y,l=Math.hypot(dx,dy);if(l<.001||Math.abs((b.x-a.x)*dy-(b.y-a.y)*dx)/l>.001||(b.x-a.x)*(p.x-b.x)+(b.y-a.y)*(p.y-b.y)<0)break;compact.pop()}compact.push(p)}
+let length=0;for(let i=1;i<compact.length;i++)length+=dist(compact[i-1],compact[i]);return {points:compact,length,key:base.key}};
 const oldAutoDestination=autoDestination;autoDestination=function(){const p=oldAutoDestination();return p.arrival||p};autoTrip=null;
 }
 
