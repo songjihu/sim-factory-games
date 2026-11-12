@@ -3,3 +3,5 @@
 
 @media(max-height:740px){.hotspots{top:105px;display:flex;gap:5px;right:14px}.hotspots button{width:37px;height:37px}}
 @media(max-height:650px){.story-panel{height:68%;gap:5px}.story-reading{min-height:45px;font-size:12px}.choice small{display:none}.choice{min-height:32px}.choices{gap:4px}.story-panel h2{font-size:18px}.feedback{font-size:9px;line-height:1.4}.story-panel.ending{height:68%}.place-label{font-size:10px}}
+
+.mood-portrait{width:46px;height:53px;padding:0;background:#d9ded0;border:1px solid #d3b67b;border-radius:3px;overflow:hidden;flex-shrink:0}.mood-portrait img{width:100%;height:100%;object-fit:cover;object-position:center 22%}
