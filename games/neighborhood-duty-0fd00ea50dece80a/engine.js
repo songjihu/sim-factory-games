@@ -12,7 +12,7 @@ if(!s.started)return result(false,'请先接下值班钥匙。');
 if(type==='endDay'){
  if(s.meeting)return result(false,'请先完成本周议事，选择工程或保留预算。');
  s.queue=s.queue.filter(q=>{if(q.due<=s.day){s.trust-=q.stage==='follow'?5:7;s.support[D.events[q.event].resident]-=4;s.missed++;log(s,'逾期：'+D.events[q.event].title+'，信任受损。');return false;}return true;});
- s.cash+=86+(s.projects.includes(3)?12:0);s.safety-=s.projects.includes(0)?1:3;if(s.projects.includes(2))s.safety+=1;
+ s.cash+=86+(s.projects.includes(3)?12:0);if(s.projects.includes(3))s.trust+=1;s.safety-=s.projects.includes(0)?1:3;if(s.projects.includes(2))s.safety+=1;
  if(s.safety<30){s.cash-=45;s.trust-=4;log(s,'设施连续低于30，临时抢修支出45，信任−4。');}
  log(s,'第'+s.day+'日结算：值班预算到账，未处理事项继续保留。');s.day++;s.shift=3;
  if(s.day<=28){if(s.queue.length<5)add(s);if(s.day%3===0&&s.queue.length<5)add(s);if(s.day%7===1)s.meeting=s.day-1;}
@@ -33,7 +33,7 @@ if(type==='resolve'){
  if(q.stage!=='open')return result(false,'已处理，请在次日回访。');
  const methods={self:{cost:28,gain:q.checked?7:2,safe:q.checked?6:1},pro:{cost:q.checked?64:90,gain:6,safe:9},joint:{cost:12,gain:q.checked?9:3,safe:q.checked?4:0}};const m=methods[arg.method];if(!m)return result(false,'请选择处理方式。');
  if(arg.method==='joint'&&s.support[e.resident]<35)return result(false,'这位居民支持低于35，需要先走访，才能组织共建。');
- if(s.cash<m.cost)return result(false,'预算不足，不能执行此方案。');s.cash-=m.cost;s.shift--;s.trust+=m.gain;s.safety+=m.safe;s.support[e.resident]+=m.gain;q.stage='follow';q.method=arg.method;q.ready=s.day+1;q.due=s.day+3;s.done++;log(s,e.title+'：'+({self:'现场处理',pro:'专业派工',joint:'居民共建'}[arg.method])+'，预算−'+m.cost+'，待次日回访。');clamp(s);return result(true,e.result+' 次日回访后才能正式销单。');
+ if(s.cash<m.cost)return result(false,'预算不足，不能执行此方案。');if(s.projects.includes(1)&&e.topic===2)m.gain+=2;s.cash-=m.cost;s.shift--;s.trust+=m.gain;s.safety+=m.safe;s.support[e.resident]+=m.gain;q.stage='follow';q.method=arg.method;q.ready=s.day+1;q.due=s.day+3;s.done++;log(s,e.title+'：'+({self:'现场处理',pro:'专业派工',joint:'居民共建'}[arg.method])+'，预算−'+m.cost+'，待次日回访。');clamp(s);finish(s);return result(true,e.result+' 次日回访后才能正式销单。');
 }
 if(type==='follow'){if(q.stage!=='follow')return result(false,'工单尚未处理。');if(s.day<q.ready)return result(false,'请给方案一点时间，次日再回访。');s.shift--;s.trust+=4;s.support[e.resident]+=4;s.cash+=24;s.queue=s.queue.filter(x=>x.uid!==q.uid);log(s,'回访完成：'+e.title+'，返还节余24，信任+4。');clamp(s);return result(true,'居民确认问题没有复发。正式销单，节余24回到账上。');}
 return result(false,'无法识别的操作。');}

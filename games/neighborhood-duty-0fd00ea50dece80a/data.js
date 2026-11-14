@@ -37,6 +37,6 @@ const rows=[
 ['暴雨前的巡查单',1,1,'备用排水软管接头松动，还来得及加固。','加固接头，更新雨前检查表。',0]
 ];
 const events=rows.map((r,i)=>({id:i,title:r[0],place:r[1],resident:r[2],fact:r[3],result:r[4],topic:r[5]}));
-const projects=[{id:0,name:'夜路亮灯',cost:260,desc:'夜间事故压力降低，设施每日损耗减少。',need:0},{id:1,name:'无障碍小径',cost:300,desc:'老人、骑手与家长支持提升，通行工单更易解决。',need:2},{id:2,name:'雨水花园',cost:280,desc:'改善排水与绿地，每日设施恢复1点。',need:1},{id:3,name:'透明账本',cost:220,desc:'每天多获得12预算，居民逐渐建立信任。',need:2}];
+const projects=[{id:0,name:'夜路亮灯',cost:260,desc:'夜间事故压力降低，设施每日损耗减少。',need:0},{id:1,name:'无障碍小径',cost:300,desc:'改善通行，公平与便利类工单处理时额外获得2信任。',need:2},{id:2,name:'雨水花园',cost:280,desc:'改善排水与绿地，每日设施恢复1点。',need:1},{id:3,name:'透明账本',cost:220,desc:'每天多获得12预算与1信任。',need:2}];
 const D={residents,places,events,projects};if(typeof module!=='undefined')module.exports=D;g.GameData=D;
 })(typeof globalThis!=='undefined'?globalThis:this);
