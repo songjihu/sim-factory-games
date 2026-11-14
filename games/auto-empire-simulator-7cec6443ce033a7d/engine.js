@@ -37,7 +37,7 @@ function baseAct(s,type,arg){
  case 'loan':{if(![2000,10000,50000].includes(arg))return '融资金额无效。';if(s.debt+arg>Math.max(6000,8000+s.totalSold*1.8))return '超过授信上限。';err=requireAction(s,0,0);if(err)return err;s.cash+=arg;s.debt+=arg;break;}
  case 'repay':{cost=Math.min(s.debt,2000);if(cost<=0)return '当前没有负债。';err=spend(s,cost,0);if(err)return err;s.debt-=cost;break;}
  case 'setting':{err=requireAction(s,0,0);if(err)return err;const limits={focus:5,marketing:3,supply:2,inspection:2,shift:2};if(!Object.hasOwn(limits,arg.key)||!Number.isInteger(arg.value)||arg.value<0||arg.value>limits[arg.key])return '设置无效。';if(arg.key==='focus'&&s.channels[arg.value]===0)return '先拓展该区域渠道。';s[arg.key]=arg.value;break;}
- case 'plan':case 'price':case 'toggle':{err=requireAction(s,0,0);if(err)return err;const m=s.models.find(m=>m.id===arg.id);if(!m)return '车型不存在。';if(type==='plan')m.plan=clamp(Math.round(Number(arg.value)||0),0,5000);if(type==='price')m.price=round(clamp(Number(arg.value)||segments[m.seg].base,round(segments[m.seg].base*.55),round(segments[m.seg].base*1.9)));if(type==='toggle')m.active=!m.active;break;}
+ case 'plan':case 'price':case 'toggle':{err=requireAction(s,0,0);if(err)return err;const m=s.models.find(m=>m.id===arg.id);if(!m)return '车型不存在。';if(type==='plan'){m.plan=clamp(Math.round(Number(arg.value)||0),0,5000);m.auto=false;}if(type==='price')m.price=round(clamp(Number(arg.value)||segments[m.seg].base,round(segments[m.seg].base*.55),round(segments[m.seg].base*1.9)));if(type==='toggle')m.active=!m.active;break;}
  default:return '操作未识别。';
  }return null;
 }
@@ -131,6 +131,7 @@ function orderOffers(s){const year=Math.floor((s.month-1)/12);return [{name:'城
 function selectMandate(s,i){if(s.event)return '先处理本月来信。';if(s.pendingReview)return '先完成年度复盘。';if(s.mandate)return '本月议案已签署。';if(!mandates[i])return '请选择有效议案。';s.mandate={choice:i,target:Math.max(100,Math.round((s.last?.sales||100)*1.06)),stock:s.models.reduce((a,m)=>a+m.stock,0),month:s.month};return null;}
 function annualReview(s,i){if(!s.pendingReview)return '没有待复盘年度。';const r=s.annual.at(-1);if(i===0){const bonus=500+r.year*100;s.cash+=bonus;r.choice='留存经营储备';r.reward=bonus;}else if(i===1){if(s.cash<600)return '现金不足600万，可选择留存储备。';s.cash-=600;s.brandPower=clamp(s.brandPower+6,0,100);s.knowledge=clamp(s.knowledge+35,0,1000);r.choice='投入下一轮能力';r.reward=-600;}else return '请选择复盘方向。';s.pendingReview=false;return null;}
 function act(s,type,arg){let err;
+ if(type==='autoplan'){err=requireAction(s,0,0);if(err)return err;const m=s.models.find(m=>m.id===arg.id);if(!m)return '车型不存在。';m.auto=true;m.plan=clamp(forecast(s,m)-m.stock,0,5000);return null;}
  if(type==='mandate')return selectMandate(s,arg);
  if(type==='annual')return annualReview(s,arg);
  if(type==='contract'){if(!suppliers[arg])return '供应商无效。';if(s.contract)return '长约仍在生效，到期后再选择下一家。';err=spend(s,suppliers[arg].fee);if(err)return err;s.contract={supplier:arg,left:12};return null;}
@@ -145,6 +146,7 @@ function act(s,type,arg){let err;
  return baseAct(s,type,arg);
 }
 function next(s){if(s.pendingReview)return '先完成年度复盘。';if(!s.mandate&&!s.event)return '先签署本月经营议案，再下达计划。';const mandate=s.mandate,oldProjects=s.projects.map(p=>({...p})),oldIds=new Set(s.models.map(m=>m.id)),oldCash=s.cash;
+ if(s.event)return '先回复本月来信。';for(const m of s.models)if(m.auto)m.plan=clamp(forecast(s,m)-m.stock,0,5000);
  const err=baseNext(s);if(err)return err;const r=s.last;
  for(const m of s.models)if(!oldIds.has(m.id)){const project=oldProjects.find(p=>p.type==='model'&&p.name===m.name);if(project)Object.assign(m,{drive:project.drive||0,pack:project.pack??1,position:project.position??1});}
  let strategy=0;
