@@ -1,0 +1,1 @@
+window.GAME_CONFIG = {"slug": "luoying-flower-story-54573f87f69f431c", "version": "1.0.0", "url": "https://songjihu.github.io/sim-factory-games/games/luoying-flower-story-54573f87f69f431c/", "backup_url": "https://songjihu.top/play/luoying-flower-story-54573f87f69f431c/", "api": "https://songjihu.top/api/luoying-flower-story-54573f87f69f431c", "port": 18273};
