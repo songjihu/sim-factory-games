@@ -2,3 +2,9 @@
 
 /* v1.0.1: full jersey and natural body proportions */
 .player .photo{height:auto;aspect-ratio:3/4;background:#101010}.player img{object-fit:contain;object-position:center}.detailphoto{height:180px;object-fit:contain;background:#101010}.spot img,.mini{object-position:center 20%}
+
+.story{font-size:15px;line-height:1.95;letter-spacing:.3px}.panel:has(.story){padding:17px}input[type=radio]{accent-color:var(--orange)}.panel select{width:100%}.tabs{padding-top:8px}main>h1{margin-top:5px}.panel label input[type=number]{width:100%;margin-top:5px}#detail .story{line-height:1.9}
+
+.case-reading{max-height:calc(100dvh - 415px);min-height:130px;overflow-y:auto;padding-right:3px;border-bottom:1px solid var(--line)}.policy-options{padding-top:5px}.policy-options button{margin-top:6px;font-size:13px;min-height:40px}.case-reading .panel{margin-bottom:8px}.case-reading h2{font-size:15px}@media(max-height:700px){.case-reading{max-height:calc(100dvh - 370px);min-height:105px}.policy-options button{font-size:11px;min-height:34px;padding:6px}}
+
+@media(max-height:700px){.case-reading{max-height:calc(100dvh - 470px);min-height:75px}.policy-options{padding-top:2px}.policy-options button{margin-top:4px}}
