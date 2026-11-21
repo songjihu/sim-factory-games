@@ -24,13 +24,13 @@ const Engine=(()=>{
   if(s.phase==='研究生'&&elapsed>=(s.degree==='博士'?3:D.routes[s.route].years)*48){
    let req=['直博','博士'].includes(s.degree)?3:1;let have=s.degree==='专硕'?s.core+s.sci+s.other:s.core+s.sci;
    if(have<req||s.exp<8){if(s.week%12===0)publishChoice(s,'毕业考核尚未通过',`毕业需要${req}篇成果及8点积累。目前成果${have}篇、积累${s.exp.toFixed(1)}。延长培养期间继续领取补助。`,[{label:'继续完成毕业要求',effect:{stress:8},note:'培养延期一个季度，继续积累。'}],'notice');return}
-   if(s.degree==='专硕'){s.phase='工作';s.cert=true;s.training=3;record(s,'专硕毕业，取得规培证书，进入住院医师岗位。',true)}
+   if(s.degree==='专硕'){s.phase='工作';s.cert=true;s.training=3;if(!s.owned&&s.housing===0){s.housing=1;record(s,'培养结束，迁出宿舍，改为合租。')}record(s,'专硕毕业，取得规培证书，进入住院医师岗位。',true)}
    else publishChoice(s,'毕业后的去向','学术培养结束，你需要决定下一站。',[
     {label:'进入社会规培 · 三年临床训练',code:'residency'},
     ...(s.degree==='学硕'?[{label:'申请继续读博 · 三年，科研与导师关系影响录取',code:'phd'}]:[]),
     {label:'离开临床，转入科研岗位',code:'researchCareer'}],'career');
   }
-  if(s.phase==='规培'&&elapsed>=144){if(s.clinical>=35){s.phase='工作';s.cert=true;s.training=3;record(s,'通过规培结业考核，获得独立岗位资格。',true)}else if(s.week%12===0)record(s,'规培结业需要临床35，当前能力不足，延长培养。')}
+  if(s.phase==='规培'&&elapsed>=144){if(s.clinical>=35){s.phase='工作';s.cert=true;s.training=3;if(!s.owned&&s.housing===0){s.housing=1;record(s,'培养结束，迁出宿舍，改为合租。')}record(s,'通过规培结业考核，获得独立岗位资格。',true)}else if(s.week%12===0)record(s,'规培结业需要临床35，当前能力不足，延长培养。')}
  }
  function promotion(s){let clinical=[0,40,63,82],credits=[0,2,5,10],experience=[0,6,11,17];let target=s.title+1;
   if(target>3)return '已取得最高职称。';if(!s.cert)return '尚未取得规培资格。';if(s.week/48<experience[target]||s.clinical<clinical[target]||s.credits<credits[target])return `需生涯${experience[target]}年、临床${clinical[target]}、论文积分${credits[target]}。`;
@@ -42,14 +42,14 @@ const Engine=(()=>{
  function admit(s){let id=s.nextPatient++;let types=['高血压长期照护','糖代谢异常随访','儿童反复不适评估','老年多病共存','出院康复衔接','睡眠与生活压力'];let p={id,name:['陈','王','李','周','赵','刘'][Math.floor(random(s)*6)]+'某',age:18+Math.floor(random(s)*65),type:types[Math.floor(random(s)*types.length)],stage:0,progress:8,trust:35+Math.floor(random(s)*20),risk:15+Math.floor(random(s)*30),visits:0,missed:0,admit:s.week,lastSeen:s.week,community:false,notes:[]};s.patients.push(p);s.admitted++;record(s,`${p.name}进入${s.job==='病房'?'病房':'门诊'}照护：${p.type}。`)}
  function patientAction(s,id,a){let p=s.patients.find(p=>p.id===id);if(!p)return '患者已转出。';return once(s,'patient'+id,()=>{
   if(a==='history'){p.stage=Math.max(1,p.stage);p.progress+=8;p.trust+=7;s.talk+=.7;s.stress+=3;p.notes.unshift('补充病史，记录生活方式、家庭支持与既往就诊资料。')}
-  if(a==='review'){if(p.stage<1)return '请先完成病史与生活情况沟通。';p.stage=2;p.progress+=12+s.clinical/10;p.risk-=7;s.clinical+=.7;s.stress+=5;p.notes.unshift('联合上级复核资料并形成进一步评估计划。')}
-  if(a==='plan'){if(p.stage<2)return '需要先完成团队评估。';p.stage=3;p.progress+=12;p.trust+=5;s.exp+=.25;s.stress+=3;p.notes.unshift('与患者共同约定照护目标和复查时间。')}
+  if(a==='review'){if(p.stage<1)return '请先完成病史与生活情况沟通。';p.stage=Math.max(p.stage,2);p.progress+=12+s.clinical/10;p.risk-=7;s.clinical+=.7;s.stress+=5;p.notes.unshift('联合上级复核资料并形成进一步评估计划。')}
+  if(a==='plan'){if(p.stage>=3)return '照护计划已制定，请进行复诊随访。';if(p.stage<2)return '需要先完成团队评估。';p.stage=3;p.progress+=12;p.trust+=5;s.exp+=.25;s.stress+=3;p.notes.unshift('与患者共同约定照护目标和复查时间。')}
   if(a==='follow'){if(p.stage<3)return '请先形成连续照护计划。';p.progress+=10+s.talk/10;p.trust+=4;p.risk-=4;p.visits++;s.followups++;s.reputation+=.4;s.stress+=2;p.notes.unshift('核实计划执行、复诊障碍与生活中的变化。')}
-  if(a==='community'){if(p.progress<65||p.trust<45)return '转社区需照护进度65、信任45。';p.community=true;p.progress=100;s.community++;s.reputation+=2;p.notes.unshift('与社区护士完成交接，进入基层长期随访。')}
-  if(a==='discharge'){if(p.progress<80||p.risk>50)return '出院／结案需进度80、风险不高于50。';p.progress=100;s.discharged++;s.exp+=1;s.reputation+=1}
+  if(a==='community'){if(p.stage<3)return '请先完成评估与照护计划，再转入社区。';if(p.progress<65||p.trust<45||p.risk>50)return '转社区需照护进度65、信任45、风险不高于50。';p.community=true;p.progress=100;s.community++;s.reputation+=2;p.notes.unshift('与社区护士完成交接，进入基层长期随访。')}
+  if(a==='discharge'){if(p.stage<3)return '请先完成评估与照护计划，再结束本阶段照护。';if(p.progress<80||p.risk>50)return '出院／结案需进度80、风险不高于50。';p.progress=100;s.discharged++;s.exp+=1;s.reputation+=1}
   p.lastSeen=s.week;p.missed=0;p.trust=cap(p.trust,0,100);p.risk=cap(p.risk,0,100);if(['community','discharge'].includes(a)){record(s,`${p.name}${p.community?'转社区长期管理':'完成本阶段照护'}，随访${p.visits}次。`,true);s.patients=s.patients.filter(x=>x.id!==id)}else record(s,`${p.name}：${p.notes[0]}`);
  })}
- function choose(s,index){let p=s.pending;if(!p||!p.options[index])return '没有待处理选择。';let o=p.options[index];if(o.effect?.money<0&&s.money< -o.effect.money)return '资金不足，不能执行这项选择。';if(o.effect?.leave<0&&s.leave<1)return '年假不足，请选择其他方案。';s.pending=null;
+ function choose(s,index){let p=s.pending;if(!p||!p.options[index])return '没有待处理选择。';let o=p.options[index];if(o.code==='rest'&&s.money<8000)return '身心休整需要8000元，可选择降低负荷。';if(o.effect?.money<0&&s.money< -o.effect.money)return '资金不足，不能执行这项选择。';if(o.effect?.leave<0&&s.leave<1)return '年假不足，请选择其他方案。';s.pending=null;
   delta(s,o.effect||{});record(s,p.title+'：'+o.label+'。'+(o.note||''));
   if(p.kind==='event'){s.delayed.push({due:s.week+4,title:p.title,category:p.category,positive:index===0});s.seen[p.eventId]=(s.seen[p.eventId]||0)+1}
   if(o.code==='residency'){s.phase='规培';s.phaseStart=s.week;record(s,'进入三年社会规培。',true)}
@@ -59,13 +59,13 @@ const Engine=(()=>{
   if(o.code==='withdraw'){let sub=s.submissions.find(x=>x.id===p.subId);if(sub){sub.status='撤稿';s.exp+=sub.cost/2}}
   if(o.code==='extend'){let pr=s.projects.find(x=>x.id===p.projectId);if(pr){pr.deadline+=48;pr.extended=true;s.stress+=15;record(s,'课题获一次延期，期限增加一年。')}}
   if(o.code==='failProject'){s.projects=s.projects.filter(x=>x.id!==p.projectId);s.failed++;s.reputation-=5;record(s,'课题未通过结题，信誉受影响。',true)}
-  if(o.code==='rest'){s.stress=70;s.health=Math.max(30,s.health);s.mood=50;s.money-=8000;record(s,'暂停额外工作，开始身心休整，本周不再额外加班。',true)}
+  if(o.code==='rest'){s.stress=70;s.health=Math.max(30,s.health);s.mood=50;s.money-=8000;s.actions.weekend=s.week;record(s,'暂停额外工作，开始身心休整，本周不再额外加班。',true)}
   if(o.code?.startsWith('end:'))finish(s,o.code.slice(4));normalize(s);return null
  }
  function event(s,force=false){if(s.pending||s.ending)return;let eligible=D.events.map((e,i)=>({e,i})).filter(({e})=>e[6]!=='late'||age(s)>=55).filter(({e})=>e[6]!=='research'||s.research>=15).filter(({e})=>e[6]!=='family'||s.partner!=='单身'||s.family<50);let unseen=eligible.filter(x=>!s.seen[x.i]);let pool=unseen.length?unseen:eligible;let {e,i}=pool[Math.floor(random(s)*pool.length)];publishChoice(s,e[0],e[1],[{label:e[2],effect:e[3]},{label:e[4],effect:e[5]}],'event',{category:e[6],eventId:i})}
  function income(s){return s.phase==='研究生'?D.routes[s.route].stipend:s.phase==='规培'?6500:9500+s.title*4200+s.position*2200+Math.round(s.reputation*35)+(s.job==='病房'?1800:s.job==='门诊为主'?2400:800)}
- function expense(s){return 2600+(s.owned?900:Math.round(D.homes[s.housing].rent*s.priceIndex))+s.children.filter(c=>!c.adult).length*1800+(s.partner==='已婚'?1200:0)+(s.lifestyle==='放纵'?1800:s.lifestyle==='社交'?800:300)+(s.mortgage>0?3500:0)}
- function monthly(s){let beforeStress=s.stress,beforeHealth=s.health,beforeMood=s.mood,inc=income(s),out=expense(s);s.money+=inc-out;s.lastIncome=inc;s.lastExpense=out;s.lastNet=inc-out;if(s.mortgage>0)s.mortgage=Math.max(0,s.mortgage-2500);s.priceIndex=cap(s.priceIndex+(random(s)-.4)*.012,.7,2);
+ function expense(s){return 2600+(s.owned?900:Math.round(D.homes[s.housing].rent*s.priceIndex))+s.children.filter(c=>!c.adult).length*1800+(s.partner==='已婚'?1200:0)+(s.lifestyle==='放纵'?1800:s.lifestyle==='社交'?800:300)+(s.mortgage>0?Math.min(s.mortgage,2500)+1000:0)}
+ function monthly(s){normalize(s);let beforeStress=s.monthStartStress??25,beforeHealth=s.health,beforeMood=s.mood,inc=income(s),out=expense(s);s.money+=inc-out;s.lastIncome=inc;s.lastExpense=out;s.lastNet=inc-out;s.monthStartStress=s.stress;if(s.mortgage>0)s.mortgage=Math.max(0,s.mortgage-2500);s.priceIndex=cap(s.priceIndex+(random(s)-.4)*.012,.7,2);
   s.health-=s.stress>200?3:s.stress>100?1.1:.2;s.mood-=s.stress>200?7:s.stress>100?2:0;s.family-=s.lifestyle==='顾家'?0:1.5;
   if(s.lifestyle==='顾家'){s.family+=2;s.affection+=2}if(s.partner!=='单身'&&s.affection<20&&s.week>100)record(s,'亲密关系需要更多陪伴与沟通。');
   let m={week:s.week,income:inc,expense:out,net:inc-out,stress:[beforeStress,s.stress],health:s.health-beforeHealth,mood:s.mood-beforeMood,project:s.projects.map(p=>p.name+' '+Math.floor(p.progress)+'%'),in:s.admitted,out:s.discharged};s.monthly.unshift(m);s.monthly=s.monthly.slice(0,60);s.admitted=0;s.discharged=0;
@@ -80,16 +80,16 @@ const Engine=(()=>{
   let growth=s.phase==='研究生'&&s.route>0?.07:.18;s.clinical+=growth+(s.focus==='临床'?.17:0);s.research+=.06+(s.focus==='科研'?.18:0)+(s.job==='科研为主'?.15:0);s.talk+=(s.focus==='沟通'?.23:.08)*(s.trait==='敏感'?1.4:1);s.teach+=s.teaching==='手把手'?.18:s.teaching==='正常'?.06:.01;s.teamSkill+=s.teaching==='手把手'?.16:.06;if(s.teaching==='手把手')s.stress+=1.3;
   let accumulation=.10+s.research/400+(s.focus==='科研'?.2:0);s.exp+=accumulation*(s.projects.length?.5:1);if(s.lifestyle==='埋头干'){s.clinical+=.12;s.exp+=.15}if(s.lifestyle==='社交')s.team+=.15;if(s.lifestyle==='顾家'){s.family+=.2;s.affection+=.3}if(s.job==='社区服务')s.reputation+=.1;
   for(let p of s.patients){if(s.week-p.lastSeen>=4){p.missed++;p.risk=cap(p.risk+2,0,100);p.trust=cap(p.trust-1,0,100)}p.progress=Math.min(95,p.progress+(s.job==='病房'?1.2:.7))}
-  for(let p of s.projects){let step=.25+s.research/150+(s.job==='科研为主'?.25:0);if(p.budget>=300){p.progress=Math.min(100,p.progress+step);p.budget-=300;p.spent+=300}else if(s.week%12===0)record(s,p.name+'经费不足，进度暂停，可投入个人经费。')}
+  for(let p of s.projects){if(p.progress>=100)continue;let step=.25+s.research/150+(s.job==='科研为主'?.25:0);if(p.budget>=300){p.progress=Math.min(100,p.progress+step);p.budget-=300;p.spent+=300}else if(s.week%12===0)record(s,p.name+'经费不足，进度暂停，可投入个人经费。')}
   for(let item of s.delayed.filter(x=>x.due<=s.week)){let k={clinical:'clinical',community:'reputation',teaching:'teach',research:'research',family:'family',relationship:'team',life:'health',career:'boss',late:'teach'}[item.category]||'talk';s[k]+=item.positive?1:.5;record(s,item.title+'后续：'+(item.positive?'投入转化为经验，安排得以落实。':'稳妥的安排保留了后续空间。'))}s.delayed=s.delayed.filter(x=>x.due>s.week);
   if(s.week%4===0)monthly(s);if(s.week%48===0){s.leave=3;record(s,'新年度年假已发放，职称申报在9月开放。');for(let c of s.children){if(s.week-c.born>=18*48&&!c.adult){c.adult=true;record(s,'孩子长大成人，开始自己的生活。',true)}}if(!s.owned&&s.housing===0&&s.phase==='工作'){s.housing=1;record(s,'培养阶段结束，迁出宿舍，改为合租。')}}
   normalize(s);if(s.health<=5){finish(s,'提前离岗');return true}if(s.money< -60000){finish(s,'经济转向');return true}if(age(s)>=65){finish(s,retirement(s));return true}
   for(let sub of s.submissions.filter(x=>['审稿中','返修中'].includes(x.status)&&x.due<=s.week)){let roll=random(s);if(roll<sub.chance){sub.status='录用';s.sci+=sub.sci||0;s.core+=sub.core||0;s.other+=!sub.sci&&!sub.core?1:0;s.credits+=sub.credit;s.papers.unshift({...sub,published:s.week});record(s,sub.name+'论文录用。',true)}else if(sub.status==='审稿中'&&roll<sub.chance+.25){sub.status='待返修';publishChoice(s,'论文返修意见','审稿人要求补充分析。返修需要3点积累，重新审稿4周。',[{label:'认真返修 · 积累−3',code:'revision'},{label:'撤回并返还一半投稿积累',code:'withdraw'}],'review',{subId:sub.id});break}else{sub.status='退稿';s.exp+=sub.cost/2;record(s,sub.name+'退稿，返还一半投稿积累。')}}
   if(s.pending)return true;
   for(let p of s.projects){let g=D.grants[p.level],enough=s.sci-p.startSci>=g.sci&&s.core-p.startCore>=g.core;if(p.progress>=100&&enough){s.completed++;s.projects=s.projects.filter(x=>x.id!==p.id);s.exp+=8;s.reputation+=3;record(s,p.name+'结题通过，剩余经费按项目规则封存。',true);if(s.completed===3)s.researchHonors.push('青年学术骨干')}else if(s.week>=p.deadline){publishChoice(s,'课题结题期限已到',`${p.name}需进度100%、SCI ${g.sci}篇、核心${g.core}篇（立项后的新增成果）。当前尚未达标。`,[...(!p.extended?[{label:'申请延期一年 · 压力+15',code:'extend'}]:[]),{label:'接受未通过结题',code:'failProject'}],'project',{projectId:p.id});break}}
-  if(s.pending)return true;progression(s);if(s.pending)return true;
-  if(s.stress>=220&&s.week%4===0){publishChoice(s,'负荷已经超出承受','你需要重新安排工作与生活。',[{label:'暂停四周，接受休整 · ¥8000',code:'rest'},{label:'降低负荷，暂缓额外任务',effect:{stress:-55,mood:5,exp:-2}},{label:'结束临床生涯，身心重整',code:'end:身心重整'}],'pressure');return true}
-  if(s.autoTrip&&s.stress>=140&&s.leave>0&&s.money>=2500){s.leave--;s.money-=2500;s.stress-=70;s.mood+=8;record(s,'自动安排一次旅行，使用一周年假与2500元。')}if(s.week%5===0)event(s);return true
+  normalize(s);if(s.pending)return true;progression(s);if(s.pending)return true;
+  if(s.stress>=220&&s.week%4===0){publishChoice(s,'负荷已经超出承受','你需要重新安排工作与生活。',[{label:'接受身心休整 · ¥8000',code:'rest'},{label:'降低负荷，暂缓额外任务',effect:{stress:-55,mood:5,exp:-2}},{label:'结束临床生涯，身心重整',code:'end:身心重整'}],'pressure');return true}
+  if(s.autoTrip&&s.stress>=140&&s.leave>0&&s.money>=2500){s.leave--;s.money-=2500;s.stress-=70;s.mood+=8;record(s,'自动安排一次旅行，使用一周年假与2500元。')}if(s.week%5===0)event(s);normalize(s);return true
  }
  function action(s,type,arg){if(s.ending)return '本局已结束，可查看生涯或重新开局。';if(s.pending)return '请先处理待决定事项。';let result=null;
   if(type==='patient')return patientAction(s,arg.id,arg.action);
@@ -103,7 +103,7 @@ const Engine=(()=>{
   if(type==='rest')result=once(s,'rest',()=>{s.stress-=18;s.mood+=3;record(s,'短暂歇息，压力−18、心态+3。')});
   if(type==='team')result=once(s,'team',()=>{if(s.money<3000)return '团建需3000元。';s.money-=3000;s.team+=7;s.stress-=10;record(s,'组织团建，同事+7、压力−10。')});
   if(type==='shift')result=once(s,'shift',()=>{s.stress+=18;s.team+=5;s.money+=600;s.clinical+=.5;record(s,'主动替班，获得补贴600元，同事+5、压力+18。')});
-  if(type==='trip'||type==='vacation')result=once(s,'vacation',()=>{if(s.leave<1)return '需要一周年假。';if(type==='trip'&&s.money<2500)return '旅行需2500元。';s.leave--;s.stress-=type==='trip'?70:50;s.health+=3;s.mood+=8;if(type==='trip')s.money-=2500;record(s,'已安排一周年假，本周暂停额外任务。');s.actions.weekend=s.week});
+  if(type==='trip'||type==='vacation')result=once(s,'vacation',()=>{if(s.actions.weekend===s.week)return '本周已安排科研或休整，不能再申请年假。';if(s.leave<1)return '需要一周年假。';if(type==='trip'&&s.money<2500)return '旅行需2500元。';s.leave--;s.stress-=type==='trip'?70:50;s.health+=3;s.mood+=8;if(type==='trip')s.money-=2500;record(s,'已安排一周年假，本周暂停额外任务。');s.actions.weekend=s.week});
   if(type==='weekend')result=once(s,'weekend',()=>{s.stress+=14;s.exp+=1*(s.projects.length?.5:1);s.research+=.5;s.weekend++;for(let p of s.projects)p.progress=Math.min(100,p.progress+1.4);record(s,'周末科研：压力+14，积累与在研进度增加。')});
   if(type==='social')result=once(s,'social',()=>{if(s.money<500)return '社交需500元。';s.money-=500;s.affection+=10;if(s.partner==='单身'&&s.affection>=30){s.partner='恋爱中';record(s,'你与一位互相理解的人开始交往。',true)}else record(s,'认真相处，亲密度+10。');s.mood+=4});
   if(type==='marry'){if(s.partner!=='恋爱中'||s.affection<60||s.money<20000)return '需恋爱中、亲密度60和20000元。';s.money-=20000;s.partner='已婚';s.family+=8;record(s,'你们决定共同生活。',true)}
@@ -120,6 +120,24 @@ const Engine=(()=>{
   if(type==='exit'){let options=[{label:'继续行医',effect:{}},{label:'转入公共卫生管理 · 结束本局',code:'end:公共卫生之路'},...['独立诊所','转入医企','公共卫生之路','学术转身','主动告别'].map(x=>({label:x+' · 结束本局',code:'end:'+x}))];publishChoice(s,'考虑另一条路','转行将结束本局，并生成独立生涯档案。',options,'exit')}
   normalize(s);return result
  }
- function validate(s){if(!s||s.version!==2)throw Error('存档版本不匹配');for(let k of ['week','seed','money','stress','health','mood','exp',...ability,...relations,'title','position','housing','route'])if(!Number.isFinite(s[k]))throw Error('存档数值损坏');if(!Number.isInteger(s.week)||s.week<0||s.week>5000||!D.routes[s.route]||!D.homes[s.housing]||s.title<0||s.title>3||s.position<0||s.position>4)throw Error('存档越界');for(let k of ['patients','projects','submissions','grants','history','logs','monthly','children','papers','delayed','researchHonors'])if(!Array.isArray(s[k]))throw Error('存档数据缺失');if(!D.traits.some(x=>x[0]===s.trait)||!D.lifestyles.some(x=>x[0]===s.lifestyle))throw Error('存档选项损坏');if(!s.actions||!s.lastGrant||!s.seen)throw Error('存档字段缺失');for(let p of s.patients)if(!Number.isFinite(p.id)||!Array.isArray(p.notes)||!Number.isFinite(p.progress))throw Error('患者档案损坏');for(let p of s.projects)if(!D.grants[p.level]||!Number.isFinite(p.deadline)||!Number.isFinite(p.budget))throw Error('课题档案损坏');return s}
+ function validate(s){
+  const fail=()=>{throw Error('存档数据损坏或不完整')},obj=x=>x&&typeof x==='object'&&!Array.isArray(x),finite=x=>typeof x==='number'&&Number.isFinite(x);
+  if(!obj(s)||s.version!==2)fail();const template=fresh(1);for(let [k,v]of Object.entries(template)){if(typeof v==='number'&&!finite(s[k]))fail();if(typeof v==='string'&&typeof s[k]!=='string')fail();if(typeof v==='boolean'&&typeof s[k]!=='boolean')fail();if(Array.isArray(v)&&!Array.isArray(s[k]))fail()}
+  if(!Number.isInteger(s.week)||s.week<0||s.week>5000||!Number.isInteger(s.route)||!D.routes[s.route]||!Number.isInteger(s.housing)||!D.homes[s.housing]||!Number.isInteger(s.title)||s.title<0||s.title>3||!Number.isInteger(s.position)||s.position<0||s.position>4||!['研究生','规培','工作'].includes(s.phase))fail();
+  if(!D.traits.some(x=>x[0]===s.trait)||!D.lifestyles.some(x=>x[0]===s.lifestyle)||!['病房','门诊为主','科研为主','社区服务'].includes(s.job)||!['临床','沟通','科研','均衡'].includes(s.focus)||!['正常','点到为止','手把手'].includes(s.teaching))fail();
+  for(let k of ['actions','lastGrant','seen']){if(!obj(s[k])||Object.values(s[k]).some(x=>!finite(x)))fail()}
+  for(let k of [...ability,...relations,'health','mood','reputation','teamSkill'])if(s[k]<0||s[k]>100)fail();if(s.stress<0||s.stress>360||s.mortgage<0)fail();
+  const records=a=>a.forEach(x=>{if(!obj(x)||!finite(x.week)||typeof x.text!=='string')fail()});records(s.logs);records(s.history);
+  for(let p of s.patients){if(!obj(p)||!['id','age','stage','progress','trust','risk','visits','missed','admit','lastSeen'].every(k=>finite(p[k]))||typeof p.name!=='string'||typeof p.type!=='string'||!Array.isArray(p.notes)||p.notes.some(x=>typeof x!=='string')||!Number.isInteger(p.stage)||p.stage<0||p.stage>3)fail()}
+  for(let p of s.projects)if(!obj(p)||!D.grants[p.level]||!['progress','budget','spent','deadline','startSci','startCore'].every(k=>finite(p[k]))||typeof p.name!=='string'||typeof p.id!=='string')fail();
+  for(let a of s.grants)if(!obj(a)||!D.grants[a.level]||!finite(a.due)||!finite(a.chance)||typeof a.id!=='string')fail();
+  for(let a of [...s.submissions,...s.papers])if(!obj(a)||typeof a.name!=='string'||typeof a.id!=='string'||!['审稿中','返修中','待返修','录用','退稿','撤稿'].includes(a.status)||!['due','chance','cost','credit'].every(k=>finite(a[k])))fail();
+  for(let x of s.children)if(!obj(x)||!finite(x.born)||typeof x.adult!=='boolean')fail();
+  for(let x of s.delayed)if(!obj(x)||!finite(x.due)||typeof x.title!=='string'||typeof x.category!=='string')fail();
+  for(let x of s.monthly)if(!obj(x)||!['week','income','expense','net','health','mood','in','out'].every(k=>finite(x[k]))||!Array.isArray(x.stress)||x.stress.length!==2||x.stress.some(n=>!finite(n)))fail();
+  if(s.pending!==null){let x=s.pending;if(!obj(x)||typeof x.title!=='string'||typeof x.body!=='string'||!Array.isArray(x.options)||!x.options.length)fail();for(let o of x.options){if(!obj(o)||typeof o.label!=='string')fail();if(o.effect&&(!obj(o.effect)||Object.entries(o.effect).some(([k,v])=>!finite(template[k])||!finite(v))))fail()}}
+  return s
+ }
+
  return {fresh,random,month,date,age,rank,record,normalize,delta,gate,qualification,title,position,promotion,appoint,estimate,grantGate,income,expense,action,choose,tick,validate,finish,retirement,event};
 })();
