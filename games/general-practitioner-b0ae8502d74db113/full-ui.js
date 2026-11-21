@@ -1,10 +1,10 @@
 ﻿let sectionTabs={},newSeed=Date.now();const basicRender=render,basicDecision=decision;
-function part(t){sectionTabs[page]=t;render()}
+function selectSection(t){sectionTabs[page]=t;render()}
 function notes(){let a=[];if(s.stress>=100)a.push('压力较高，安排休息或年假');if(s.projects.length)a.push('在研'+s.projects.length+'项，注意进度和新增论文');if(s.patients.some(p=>s.week-p.lastSeen>=4))a.push('有患者超过四周未随访');if(!Engine.promotion(s))a.push('本月可以申报职称');D.grants.forEach((g,i)=>{if(!Engine.grantGate(s,i))a.push(g.name+'申报窗口开放')});return a}
 render=function(){basicRender();if(!s)return;document.title='全科医生 · 2.1.0';document.body.dataset.page=page;let view=$('view');
 if(page!=='主页'){
  let children=[...view.childNodes],groups=[],current={name:page,nodes:[]};for(let n of children){if(n.nodeName==='H2'){if(current.nodes.length)groups.push(current);current={name:n.textContent,nodes:[n]}}else current.nodes.push(n)}if(current.nodes.length)groups.push(current);
- if(groups.length>1){let selected=sectionTabs[page]||groups[0].name;if(!groups.some(g=>g.name===selected))selected=groups[0].name;view.innerHTML='<div class="subnav">'+groups.map(g=>b(g.name,`part(${JSON.stringify(g.name)})`,g.name===selected)).join('')+'</div><div id="partbody"></div>';let body=$('partbody');groups.find(g=>g.name===selected).nodes.forEach(n=>body.append(n))}
+ if(groups.length>1){let selected=sectionTabs[page]||groups[0].name;if(!groups.some(g=>g.name===selected))selected=groups[0].name;view.innerHTML='<div class="subnav">'+groups.map(g=>b(g.name,`selectSection(${JSON.stringify(g.name)})`,g.name===selected)).join('')+'</div><div id="partbody"></div>';let body=$('partbody');groups.find(g=>g.name===selected).nodes.forEach(n=>body.append(n))}
 }
 if(page==='主页'){
  let sc=view.querySelector('.scene');if(sc){sc.className='workbench';sc.innerHTML='<img src="clinic.webp" alt="门诊诊室" width="112" height="155"><div><small>青禾综合医院 · '+s.department+'</small><h2>今日值班台</h2><div class="desk-actions">'+b('病历夹 · '+s.patients.length,"tab='患者';render()")+b('排班表',"openPage('工作')")+b('课题本',"openPage('科研')")+'</div></div>'}
