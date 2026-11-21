@@ -1,3 +1,4 @@
+if(new URLSearchParams(location.search).get('renderScale')==='2')document.documentElement.classList.add('capture-scale');
 const E=Empire,KEY='trillion-empire-original-v1';let s=null,tab='总部',started=false,conflict=false,base=null;const $=x=>document.querySelector(x),money=n=>n>=10000?(n/10000).toFixed(2)+'万亿':n>=1?n.toFixed(2)+'亿':(n*10000).toFixed(0)+'万',icons=['◈','⌘','▥','⚙','◇','✧'];
 try{let x=JSON.parse(localStorage.getItem(KEY));if(E.valid(x)){s=x;base=JSON.stringify(x);}}catch{}s??=E.create();s.pending??=[];s.eventId??=null;
 function toast(t){$('#toast').textContent=t;$('#toast').style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').style.display='none',3000)}
